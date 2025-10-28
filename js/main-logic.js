@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE LÓGICA PRINCIPAL (V7/8 - Comentários, Likers, Galeria)
+// ARQUIVO DE LÓGICA PRINCIPAL (V9 - Correção Duplicação)
 // =================================================================
 
 // --- Variáveis Globais do App ---
@@ -332,8 +332,13 @@ function renderDashboard() {
         </div>`;
     }).join('');
 
-    const totalCorridas = completedRacesRunner1 + completedRacesRunner2;
-    const totalCorridasLabel = hasRunner2 ? "Corridas Concluídas (Total)" : "Corridas Concluídas";
+    // CORREÇÃO: A contagem de corridas estava errada para usuários 'sozinhos'
+    // Agora, contamos corridas únicas onde *pelo menos um* corredor completou.
+    const totalCorridasCompletasUnicas = racesArray.filter(race =>
+        (race[RUNNER_1_KEY] && race[RUNNER_1_KEY].status === 'completed') ||
+        (hasRunner2 && race[RUNNER_2_KEY] && race[RUNNER_2_KEY].status === 'completed') // Só conta R2 se o perfil tiver R2
+    ).length;
+    const totalCorridasLabel = "Corridas Concluídas"; // Simplificado
 
     const juntosCardHTML = hasRunner2
         ? `<div class="stat-card"><div class="stat-number">${totalRacesJuntos} 👩🏻‍❤️‍👨🏻</div><div class="stat-label">Corridas Juntos</div></div>`
@@ -357,7 +362,7 @@ function renderDashboard() {
            </div>`;
 
     dom.summaryGrid.innerHTML = `
-        <div class="stat-card"><div class="stat-number">${totalCorridas}</div><div class="stat-label">${totalCorridasLabel}</div></div>
+        <div class="stat-card"><div class="stat-number">${totalCorridasCompletasUnicas}</div><div class="stat-label">${totalCorridasLabel}</div></div>
         ${juntosCardHTML}
         <div class="stat-card"><div class="stat-number">${totalKmCombined.toFixed(1)} km</div><div class="stat-label">${totalKmCombinedLabel}</div></div>
         ${splitKmCardHTML}
@@ -651,15 +656,31 @@ function deleteRace(raceId) {
         .catch(err => { console.error("Erro ao excluir corrida/interações:", err); alert("Erro ao excluir: " + err.message); });
 }
 
-function renderAllV1Profile() { updateProfileUI(); renderDashboard(); renderHistory(); }
+// **INÍCIO DA CORREÇÃO (BUG DUPLICAÇÃO)**
+// renderAllV1Profile foi dividida
+function renderAllV1Profile() {
+    // Esta função agora está vazia ou pode ser removida,
+    // pois a lógica foi movida para loadProfile e loadRaces
+    // updateProfileUI(); // Chamado por loadProfile
+    // renderDashboard(); // Chamado por loadRaces
+    // renderHistory(); // Chamado por loadRaces
+}
 
 // --- Funções de Carregamento de Dados (V1 + V5) ---
 function loadProfile(uid) {
     if (currentProfileCommentsListener) { currentProfileCommentsListener.off(); currentProfileCommentsListener = null; }
     dom.profileCommentsList.innerHTML = '';
     const profileRef = firebase.database().ref(`/users/${uid}/profile`);
-    profileRef.once('value', (snapshot) => { db.profile = snapshot.val() || {}; renderAllV1Profile(); },
-    (error) => { console.error("Erro ao carregar perfil:", error); db.profile = {}; renderAllV1Profile(); });
+    profileRef.once('value', (snapshot) => {
+        db.profile = snapshot.val() || {};
+        // renderAllV1Profile(); // REMOVIDO
+        updateProfileUI(); // Chama APENAS o que depende do perfil
+    },
+    (error) => {
+        console.error("Erro ao carregar perfil:", error);
+        db.profile = {};
+        updateProfileUI(); // Chama APENAS o que depende do perfil
+    });
 }
 
 function loadRaces(uid) {
@@ -675,9 +696,21 @@ function loadRaces(uid) {
     dom.summaryGrid.innerHTML = '<div class="loader">Calculando...</div>';
     dom.historyContainer.innerHTML = '<div class="loader">Carregando histórico...</div>';
     racesRef.off('value');
-    racesRef.on('value', (snapshot) => { db.races = snapshot.val() || {}; renderAllV1Profile(); },
-    (error) => { console.error("Erro ao carregar corridas:", error); db.races = {}; renderAllV1Profile(); });
+    racesRef.on('value', (snapshot) => {
+        db.races = snapshot.val() || {};
+        // renderAllV1Profile(); // REMOVIDO
+        // Chama apenas o que depende das corridas
+        renderDashboard(); 
+        renderHistory();
+    },
+    (error) => {
+        console.error("Erro ao carregar corridas:", error);
+        db.races = {};
+        renderDashboard();
+        renderHistory();
+    });
 }
+// **FIM DA CORREÇÃO (BUG DUPLICAÇÃO)**
 
 function loadPublicView() {
     if(!authUser) { dom.headerSubtitle.textContent = "Selecione um currículo ou faça login"; dom.headerProfilePicture.src = 'icons/icon-192x192.png'; dom.headerLocation.classList.add('hidden'); dom.headerBio.classList.add('hidden'); }
@@ -890,14 +923,14 @@ function toggleLike(likeButtonElement) {
     firebase.database().ref(`/publicProfiles/${currentUserUid}`).once('value', profileSnapshot => {
         const currentUserProfile = profileSnapshot.val() || {}; const currentUserName = currentUserProfile.runner1Name || "Usuário"; const currentUserPic = currentUserProfile.profilePictureUrl || null;
         interactionRef.transaction(currentInteractionData => {
-            if (currentInteractionData === null) { const likerInfo = { name: currentUserName, pic: currentUserPic }; return { ownerUid: ownerUid, likeCount: 1, likes: { [currentUserUid]: true }, likers: { [currentUserUid]: likerInfo } }; }
-            currentInteractionData.likes = currentInteractionData.likes || {}; currentInteractionData.likers = currentInteractionData.likers || {}; currentInteractionData.likeCount = currentInteractionData.likeCount || 0; if (!currentInteractionData.ownerUid) currentInteractionData.ownerUid = ownerUid;
+            if (currentInteractionData === null) { const likerInfo = { name: currentUserName, pic: currentUserPic }; return { ownerUid: ownerUid, likeCount: 1, likes: { [currentUserUid]: true }, likers: { [currentUserUid]: likerInfo }, comments: {} }; }
+            currentInteractionData.likes = currentInteractionData.likes || {}; currentInteractionData.likers = currentInteractionData.likers || {}; currentInteractionData.likeCount = currentInteractionData.likeCount || 0; if (!currentInteractionData.ownerUid) currentInteractionData.ownerUid = ownerUid; if (!currentInteractionData.comments) currentInteractionData.comments = {};
             if (currentInteractionData.likes[currentUserUid]) { currentInteractionData.likeCount--; currentInteractionData.likes[currentUserUid] = null; currentInteractionData.likers[currentUserUid] = null; }
             else { currentInteractionData.likeCount++; currentInteractionData.likes[currentUserUid] = true; currentInteractionData.likers[currentUserUid] = { name: currentUserName, pic: currentUserPic }; }
             return currentInteractionData;
         }, (error, committed, snapshot) => {
             if (error) { console.error('Falha like:', error); alert("Erro ao curtir/descurtir."); }
-            else if (committed) { console.log('Like/Unlike OK!'); const updatedInteractionData = snapshot.val(); const userLiked = updatedInteractionData?.likes?.[currentUserUid] || false; const likeCount = updatedInteractionData?.likeCount || 0; const likers = updatedInteractionData?.likers || {}; updateLikeButtonUI(likeButtonElement, likeCount, userLiked); updateLikersPreview(likeButtonElement.closest('.race-card-social')?.querySelector('.likers-preview'), likers, raceId); } // Adicionado raceId
+            else if (committed) { console.log('Like/Unlike OK!'); const updatedInteractionData = snapshot.val(); if (!updatedInteractionData) return; const userLiked = updatedInteractionData.likes?.[currentUserUid] || false; const likeCount = updatedInteractionData.likeCount || 0; const likers = updatedInteractionData.likers || {}; updateLikeButtonUI(likeButtonElement, likeCount, userLiked); updateLikersPreview(likeButtonElement.closest('.race-card-social')?.querySelector('.likers-preview'), likers, raceId); } // Adicionado raceId
             else { console.log('Transação like abortada.'); } }); });
 }
 
@@ -1069,14 +1102,14 @@ function handleProfileCommentSubmit(e) {
 function deleteRaceComment(raceId, commentId) {
     if (!authUser) return; if (!confirm("Excluir este comentário?")) return;
     const commentRef = firebase.database().ref(`/raceInteractions/${raceId}/comments/${commentId}`);
-    commentRef.remove().then(() => console.log("Comentário corrida excluído:", commentId)).catch(error => { console.error("Erro excluir corrida:", error); alert("Erro ao excluir."); });
+    commentRef.remove().then(() => console.log("Comt corrida excluído:", commentId)).catch(error => { console.error("Erro excluir corrida:", error); alert("Erro ao excluir."); });
 }
 
 // Deleta um comentário de perfil (V7/8)
 function deleteProfileComment(profileUid, commentId) {
      if (!authUser) return; if (!confirm("Excluir este recado?")) return;
      const commentRef = firebase.database().ref(`/profileComments/${profileUid}/${commentId}`);
-     commentRef.remove().then(() => console.log("Comentário perfil excluído:", commentId)).catch(error => { console.error("Erro excluir perfil:", error); alert("Erro ao excluir."); });
+     commentRef.remove().then(() => console.log("Comt perfil excluído:", commentId)).catch(error => { console.error("Erro excluir perfil:", error); alert("Erro ao excluir."); });
 }
 
 // ======================================================
