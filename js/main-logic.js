@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE LÓGICA PRINCIPAL (V6 - Sistema de Likes)
+// ARQUIVO DE LÓGICA PRINCIPAL (V6.1 - Likes em /raceInteractions)
 // =================================================================
 
 // --- Variáveis Globais do App ---
@@ -354,6 +354,7 @@ function renderHistory() {
     }
 }
 
+// Cria o HTML para um card de corrida
 function createRaceCard(race) {
     const card = document.createElement('div');
     const runner1Data = race[RUNNER_1_KEY];
@@ -361,20 +362,21 @@ function createRaceCard(race) {
 
     if (!runner1Data) {
         console.warn("Dados da corrida incompletos (Falta Runner 1):", race);
-        return card;
+        return card; // Retorna card vazio se dados essenciais faltarem
     }
 
+    // Determina o status geral do card
     let cardStatus = 'completed';
     if (runner1Data.status === 'planned' || (runner2Data && runner2Data.status === 'planned')) cardStatus = 'planned';
     if (runner1Data.status === 'skipped' && (!runner2Data || runner2Data.status === 'skipped')) cardStatus = 'skipped';
 
     card.className = `race-card status-${cardStatus}`;
-    card.dataset.id = race.id; // ID da corrida
-    card.dataset.ownerUid = currentViewingUid; // V6 - UID do dono da corrida
+    card.dataset.id = race.id; // ID da corrida (importante!)
+    card.dataset.ownerUid = currentViewingUid; // UID do dono do perfil atual
 
+    // Calcula distâncias e paces
     const runner1Dist = runner1Data.distance || race.distance;
     const runner1Pace = calculatePace(runner1Data.status === 'completed' ? runner1Data.time : runner1Data.goalTime, runner1Dist);
-
     let runner2Dist = null;
     let runner2Pace = null;
     if(runner2Data) {
@@ -382,6 +384,7 @@ function createRaceCard(race) {
         runner2Pace = calculatePace(runner2Data.status === 'completed' ? runner2Data.time : runner2Data.goalTime, runner2Dist);
     }
 
+    // Define como exibir a distância
     let raceDistDisplay = '';
     if (race.distance) {
         raceDistDisplay = `${race.distance}km`;
@@ -393,6 +396,7 @@ function createRaceCard(race) {
 
     const canEdit = authUser && authUser.uid === currentViewingUid;
 
+    // --- HTML da Mídia (Fotos) ---
     let mediaHTML = '';
     if (race.media) {
         const mediaItems = Object.values(race.media);
@@ -405,32 +409,27 @@ function createRaceCard(race) {
                         <img src="${item.url}" alt="Foto da corrida" class="media-thumbnail" onclick="window.open('${item.url}')">
                     `).join('')}
                 </div>
-            </div>
-            `;
+            </div>`;
         }
     }
 
+    // --- HTML Botão Adicionar Mídia ---
     let mediaButtonHTML = '';
     if (canEdit && cardStatus === 'completed') {
         mediaButtonHTML = `<button class="btn-control btn-add-media" data-race-id="${race.id}" title="Adicionar Mídia">📸</button>`;
     }
 
-    // V6 - Seção de Likes
-    const likeCount = race.likeCount || 0;
-    const userLiked = authUser && race.likes && race.likes[authUser.uid];
-    const likeButtonClass = userLiked ? 'like-button liked' : 'like-button';
-    const likeIconClass = userLiked ? 'bxs-heart' : 'bx-heart'; // Boxicons solid vs regular
+    // --- HTML Seção Social (Likes) - Inicialmente vazio ---
+    // Será preenchido assincronamente abaixo
     const socialSectionHTML = `
-        <div class="race-card-social">
-            <button class="${likeButtonClass}" data-race-id="${race.id}" data-owner-uid="${currentViewingUid}" aria-label="Curtir">
-                <i class='bx ${likeIconClass}'></i>
+        <div class="race-card-social" id="social-${race.id}">
+            <button class="like-button" data-race-id="${race.id}" data-owner-uid="${currentViewingUid}" aria-label="Curtir" disabled>
+                <i class='bx bx-loader-alt bx-spin'></i> 
             </button>
-            <span class="like-count">${likeCount}</span>
-            
-        </div>
-    `;
+            <span class="like-count">--</span>
+        </div>`;
 
-
+    // --- Estrutura Principal do Card ---
     card.innerHTML = `
         <div class="race-card-header">
             <h3>${race.raceName}</h3>
@@ -457,37 +456,57 @@ function createRaceCard(race) {
             </div>
         </div>`;
 
-    // --- Adiciona Listeners ---
+    // --- Adiciona Listeners para botões de Edição/Exclusão/Mídia ---
     if(canEdit) {
-        card.querySelector('.btn-edit')?.addEventListener('click', (e) => { // Optional chaining
-            e.stopPropagation();
-            openModal(race.id);
+        card.querySelector('.btn-edit')?.addEventListener('click', (e) => {
+            e.stopPropagation(); openModal(race.id);
         });
         card.querySelector('.btn-delete')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteRace(race.id);
+            e.stopPropagation(); deleteRace(race.id);
         });
-
         const mediaBtn = card.querySelector('.btn-add-media');
         if (mediaBtn) {
             mediaBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openMediaUploadModal(e.currentTarget.dataset.raceId);
+                e.stopPropagation(); openMediaUploadModal(e.currentTarget.dataset.raceId);
             });
         }
     }
 
-    // V6 - Listener do Botão de Like (adicionado independentemente de 'canEdit')
-    const likeBtn = card.querySelector('.like-button');
-    if (likeBtn) {
-        likeBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Evita outros cliques no card
-            toggleLike(e.currentTarget); // Passa o próprio botão para a função
+    // --- Busca e Atualiza Dados de Like Assincronamente ---
+    const likeButtonElement = card.querySelector('.like-button');
+    if (likeButtonElement && authUser) { // Só busca se houver botão e usuário logado
+        const interactionRef = firebase.database().ref(`/raceInteractions/${race.id}`);
+        interactionRef.once('value', snapshot => {
+            const interactionData = snapshot.val();
+            const likeCount = interactionData?.likeCount || 0;
+            const userLiked = interactionData?.likes?.[authUser.uid] || false;
+
+            updateLikeButtonUI(likeButtonElement, likeCount, userLiked);
+            likeButtonElement.disabled = false; // Habilita o botão após carregar
+            likeButtonElement.innerHTML = `<i class='bx ${userLiked ? 'bxs-heart' : 'bx-heart'}'></i>`; // Define ícone correto
+
+            // Adiciona listener APÓS carregar dados iniciais
+            likeButtonElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleLike(e.currentTarget);
+            });
         });
+    } else if (likeButtonElement) {
+         // Se não está logado, remove o estado de loading e deixa como não curtido
+         likeButtonElement.disabled = true; // Mantém desabilitado
+         likeButtonElement.innerHTML = "<i class='bx bx-heart'></i>";
+         const countElement = likeButtonElement.nextElementSibling;
+         if (countElement && countElement.classList.contains('like-count')) {
+            countElement.textContent = '0'; // Mostra 0 se deslogado (ou busca se preferir)
+         }
+         // Poderia buscar o count público aqui se quisesse mostrar para deslogados
+         // firebase.database().ref(`/raceInteractions/${race.id}/likeCount`).once(...)
     }
+
 
     return card;
 }
+
 
 function createRunnerInfoHTML(config, runnerData, distance, pace, cssClass) {
     let timeHTML = '', paceHTML = '';
@@ -599,32 +618,41 @@ function handleFormSubmit(e) {
         } : null // Ou define como null se não houver R2 no perfil
     };
 
-    // Preserva mídia e likes existentes se estiver editando
-    if (id && db.races[id]) {
-        if (db.races[id].media) { raceData.media = db.races[id].media; }
-        if (db.races[id].likes) { raceData.likes = db.races[id].likes; } // V6
-        if (db.races[id].likeCount) { raceData.likeCount = db.races[id].likeCount; } // V6
-    } else {
-        // V6 - Inicializa likes para novas corridas
-        raceData.likes = {};
-        raceData.likeCount = 0;
+    // Preserva mídia existente se estiver editando
+    if (id && db.races[id] && db.races[id].media) {
+        raceData.media = db.races[id].media;
     }
-
+    // Não precisamos mais preservar likes/likeCount aqui, pois estão separados
 
     const dbPath = `/users/${currentViewingUid}/races/`;
 
     let promise;
+    let raceIdToReturn = id; // Guarda o ID para possível criação de interação
+
     if (id) {
         promise = firebase.database().ref(dbPath).child(id).set(raceData);
     } else {
-        promise = firebase.database().ref(dbPath).push(raceData);
+        const newRaceRef = firebase.database().ref(dbPath).push();
+        raceIdToReturn = newRaceRef.key; // Guarda o novo ID
+        promise = newRaceRef.set(raceData);
     }
 
-    promise.then(closeModal)
-           .catch(err => {
-               console.error("Erro ao salvar corrida:", err);
-               alert("Erro ao salvar: " + err.message);
-           });
+    promise.then(() => {
+        closeModal();
+        // Se for uma NOVA corrida, inicializa a entrada em raceInteractions
+        if (!id && raceIdToReturn) {
+            const interactionRef = firebase.database().ref(`/raceInteractions/${raceIdToReturn}`);
+            interactionRef.set({
+                ownerUid: currentViewingUid,
+                likeCount: 0,
+                likes: {}
+            }).catch(err => console.error("Erro ao inicializar interações para nova corrida:", err));
+        }
+    })
+    .catch(err => {
+        console.error("Erro ao salvar corrida:", err);
+        alert("Erro ao salvar: " + err.message);
+    });
 }
 
 
@@ -637,13 +665,17 @@ function deleteRace(raceId) {
     const race = db.races[raceId];
     if (!confirm(`Tem certeza que deseja excluir esta corrida?\n\n${race.raceName} (${race.date})`)) return;
 
-    firebase.database().ref(`/users/${currentViewingUid}/races/`).child(raceId).remove()
+    // Remove a corrida principal
+    firebase.database().ref(`/users/${currentViewingUid}/races/${raceId}`).remove()
         .then(() => {
             console.log("Corrida excluída:", raceId);
             closeModal(); // Fecha o modal se estava aberto para edição
+            // Remove também os dados de interação associados
+            firebase.database().ref(`/raceInteractions/${raceId}`).remove()
+                .catch(err => console.error("Erro ao excluir interações da corrida:", err));
         })
         .catch(err => {
-            console.error("Erro ao excluir:", err);
+            console.error("Erro ao excluir corrida:", err);
             alert("Erro ao excluir: " + err.message);
         });
 }
@@ -658,13 +690,12 @@ function renderAllV1Profile() {
 
 function loadProfile(uid) {
     const profileRef = firebase.database().ref(`/users/${uid}/profile`);
-    // Usamos 'once' para carregar os dados do perfil uma vez quando visualizamos
     profileRef.once('value', (snapshot) => {
-        db.profile = snapshot.val() || {}; // Define como objeto vazio se não existir
+        db.profile = snapshot.val() || {};
         renderAllV1Profile();
     }, (error) => {
         console.error("Erro ao carregar perfil:", error);
-        db.profile = {}; // Define como vazio em caso de erro
+        db.profile = {};
         renderAllV1Profile();
     });
 }
@@ -673,29 +704,26 @@ function loadProfile(uid) {
 function loadRaces(uid) {
     currentViewingUid = uid;
 
-    // Controla visibilidade dos botões de ação do usuário
     const isOwner = authUser && authUser.uid === currentViewingUid;
     dom.controlsSection.classList.toggle('hidden', !isOwner);
     dom.btnEditProfile.classList.toggle('hidden', !isOwner);
 
     const racesRef = firebase.database().ref(`/users/${uid}/races`);
 
-    // Limpa antes de carregar
     db.races = {};
     dom.prGrid.innerHTML = '<div class="loader">Carregando PRs...</div>';
     dom.summaryGrid.innerHTML = '<div class="loader">Calculando...</div>';
     dom.historyContainer.innerHTML = '<div class="loader">Carregando histórico...</div>';
 
-    // Remove listener antigo, se houver, para evitar duplicação ao trocar de perfil
-    racesRef.off('value');
+    racesRef.off('value'); // Remove listener antigo
 
-    // Listener em tempo real para as corridas
+    // Listener para as corridas do usuário atual
     racesRef.on('value', (snapshot) => {
         db.races = snapshot.val() || {};
-        renderAllV1Profile(); // Re-renderiza tudo que depende das corridas
+        renderAllV1Profile(); // Renderiza o perfil e o histórico (que agora busca likes separadamente)
     }, (error) => {
         console.error("Erro ao carregar corridas:", error);
-        db.races = {}; // Define como vazio em caso de erro
+        db.races = {};
         renderAllV1Profile();
     });
 }
@@ -705,20 +733,17 @@ function loadRaces(uid) {
 function loadPublicView() {
     if(!authUser) {
         dom.headerSubtitle.textContent = "Selecione um currículo ou faça login";
-        dom.headerProfilePicture.src = 'icons/icon-192x192.png'; // Imagem padrão
+        dom.headerProfilePicture.src = 'icons/icon-192x192.png';
         dom.headerLocation.classList.add('hidden');
         dom.headerBio.classList.add('hidden');
     }
 
     const publicProfilesRef = firebase.database().ref('/publicProfiles');
-
-    // Remove listener antigo para evitar duplicação
-    publicProfilesRef.off('value');
+    publicProfilesRef.off('value'); // Remove listener antigo
 
     publicProfilesRef.on('value', (snapshot) => {
         const profiles = snapshot.val() || {};
 
-        // Limpa ambas as listas
         if (dom.publicProfileListPublic) dom.publicProfileListPublic.innerHTML = '';
         if (dom.publicProfileListLogged) dom.publicProfileListLogged.innerHTML = '';
 
@@ -726,11 +751,8 @@ function loadPublicView() {
             const createProfileCard = (uid, profile) => {
                 const card = document.createElement('div');
                 card.className = 'profile-card';
-
-                const runner2HTML = profile.runner2Name && profile.runner2Name.trim() !== ""
-                    ? `<h3 class="runner2-name">${profile.runner2Name}</h3>`
-                    : '';
-                const profilePicUrl = profile.profilePictureUrl || 'icons/icon-192x192.png'; // V5
+                const runner2HTML = profile.runner2Name && profile.runner2Name.trim() !== "" ? `<h3 class="runner2-name">${profile.runner2Name}</h3>` : '';
+                const profilePicUrl = profile.profilePictureUrl || 'icons/icon-192x192.png';
 
                 card.innerHTML = `
                     <img src="${profilePicUrl}" alt="Foto Perfil" class="profile-card-pic">
@@ -740,9 +762,7 @@ function loadPublicView() {
                         <p>${profile.teamName || 'Equipe'}</p>
                     </div>
                 `;
-
                 card.addEventListener('click', () => {
-                    // Navega para a visualização do perfil clicado
                     if (!authUser) {
                         dom.loginOrPublicView.classList.add('hidden');
                         dom.userContent.classList.remove('hidden');
@@ -752,22 +772,18 @@ function loadPublicView() {
                         dom.btnBackToPublic.classList.add('hidden');
                         dom.btnBackToMyDashboard.classList.remove('hidden');
                     }
-                    loadProfile(uid); // Carrega perfil clicado
-                    loadRaces(uid);   // Carrega corridas do perfil clicado
+                    loadProfile(uid);
+                    loadRaces(uid);
                 });
                 return card;
             };
 
             Object.entries(profiles).forEach(([uid, profile]) => {
-                // Adiciona ao container PÚBLICO
                 if (dom.publicProfileListPublic) {
                     dom.publicProfileListPublic.appendChild(createProfileCard(uid, profile));
                 }
-                // Adiciona ao container LOGADO (exceto o próprio usuário)
-                if (dom.publicProfileListLogged) {
-                    if(!(authUser && authUser.uid === uid)) { // Não mostra o próprio perfil
-                        dom.publicProfileListLogged.appendChild(createProfileCard(uid, profile));
-                    }
+                if (dom.publicProfileListLogged && !(authUser && authUser.uid === uid)) {
+                    dom.publicProfileListLogged.appendChild(createProfileCard(uid, profile));
                 }
             });
         } else {
@@ -781,25 +797,29 @@ function loadPublicView() {
 // --- Funções de Lógica de UI (V1 - Roteador) ---
 
 function showLoggedOutView() {
-    authUser = null;
-    isAdmin = false;
-    currentViewingUid = null;
-
     // Desliga listeners específicos do usuário anterior, se houver
     if (currentViewingUid) {
         firebase.database().ref(`/users/${currentViewingUid}/races`).off();
     }
-    // Listeners públicos (perfis, corridas, resultados) permanecem ativos
+    // Desliga listeners públicos gerais
+    firebase.database().ref('/publicProfiles').off();
+    firebase.database().ref('corridas').off();
+    firebase.database().ref('resultadosEtapas').off();
+    // Limpa estado global
+    authUser = null;
+    isAdmin = false;
+    currentViewingUid = null;
+    db = { races: {}, profile: {} };
 
+    // Atualiza UI
     dom.btnLogout.classList.add('hidden');
     dom.btnBackToPublic.classList.add('hidden');
     dom.btnBackToMyDashboard.classList.add('hidden');
     dom.userInfo.classList.add('hidden');
     dom.controlsSection.classList.add('hidden');
-    dom.btnEditProfile.classList.add('hidden'); // V5
+    dom.btnEditProfile.classList.add('hidden');
     dom.pendingApprovalView.classList.add('hidden');
     dom.rejectedView.classList.add('hidden');
-
     dom.loginOrPublicView.classList.remove('hidden');
     dom.publicView.classList.remove('hidden');
     dom.userContent.classList.add('hidden');
@@ -807,9 +827,9 @@ function showLoggedOutView() {
     dom.loginForm.reset();
     toggleLoginMode(false);
 
-    db = { races: {}, profile: {} }; // Limpa dados locais
-    loadPublicView(); // Carrega perfis públicos V1/V5
-    fetchAllData(); // Carrega calendário V2
+    // Carrega dados públicos iniciais
+    loadPublicView();
+    fetchAllData();
 }
 
 
@@ -817,13 +837,11 @@ function showPendingView() {
     dom.btnLogout.classList.remove('hidden');
     dom.userInfo.classList.remove('hidden');
     dom.userEmail.textContent = authUser.email;
-
     dom.loginOrPublicView.classList.add('hidden');
     dom.userContent.classList.add('hidden');
     dom.btnBackToPublic.classList.add('hidden');
     dom.rejectedView.classList.add('hidden');
-    dom.btnEditProfile.classList.add('hidden'); // V5
-
+    dom.btnEditProfile.classList.add('hidden');
     dom.pendingApprovalView.classList.remove('hidden');
 }
 
@@ -831,13 +849,11 @@ function showRejectedView(email) {
     dom.btnLogout.classList.remove('hidden');
     dom.userInfo.classList.remove('hidden');
     dom.userEmail.textContent = email;
-
     dom.loginOrPublicView.classList.add('hidden');
     dom.userContent.classList.add('hidden');
     dom.btnBackToPublic.classList.add('hidden');
     dom.pendingApprovalView.classList.add('hidden');
-    dom.btnEditProfile.classList.add('hidden'); // V5
-
+    dom.btnEditProfile.classList.add('hidden');
     dom.rejectedEmail.textContent = email;
     dom.rejectedView.classList.remove('hidden');
 }
@@ -846,30 +862,27 @@ function showUserDashboard(user) {
     dom.btnLogout.classList.remove('hidden');
     dom.userInfo.classList.remove('hidden');
     dom.userEmail.textContent = user.email;
-
     dom.loginOrPublicView.classList.add('hidden');
     dom.pendingApprovalView.classList.add('hidden');
     dom.rejectedView.classList.add('hidden');
     dom.btnBackToPublic.classList.add('hidden');
     dom.btnBackToMyDashboard.classList.add('hidden');
-
     dom.userContent.classList.remove('hidden');
 
     // Carrega dados específicos do usuário
-    loadProfile(user.uid); // Carrega perfil V1/V5
-    loadRaces(user.uid);   // Carrega corridas V1 (agora controla botões de edição)
+    loadProfile(user.uid);
+    loadRaces(user.uid);
 
-    // Carrega dados públicos
-    fetchAllData();        // Carrega calendário V2
-    loadPublicView();      // Carrega lista de outros perfis públicos V1/V5
+    // Carrega dados públicos (listeners serão reativados se necessário)
+    fetchAllData();
+    loadPublicView();
 
-    // Configura painel de admin, se aplicável
+    // Configura painel de admin
     if (isAdmin) {
         dom.userInfo.classList.add('admin-user');
-        initializeAdminPanel(user.uid, database); // Chama a função do admin-logic.js
+        initializeAdminPanel(user.uid, database);
     } else {
          dom.userInfo.classList.remove('admin-user');
-         // O painel é oculto por padrão no HTML e só é mostrado em initializeAdminPanel
     }
 }
 
@@ -960,13 +973,16 @@ function handleSignIn(e) {
 }
 
 function signOut() {
-    // Desliga listeners de dados públicos que usam .on()
+    // Desliga listeners ANTES de fazer logout para evitar erros de permissão
+    if (currentViewingUid) {
+        firebase.database().ref(`/users/${currentViewingUid}/races`).off();
+    }
     firebase.database().ref('/publicProfiles').off();
     firebase.database().ref('corridas').off();
     firebase.database().ref('resultadosEtapas').off();
-    // Listeners de dados do usuário (.on()) já são desligados em showLoggedOutView
 
     auth.signOut().catch(err => console.error("Erro no logout:", err));
+    // O onAuthStateChanged vai chamar showLoggedOutView automaticamente
 }
 
 
@@ -977,25 +993,19 @@ function signOut() {
 function fetchAllData() {
     const dbRef = firebase.database();
 
-    // Remove listeners antigos para evitar duplicação
-    dbRef.ref('corridas').off();
-    dbRef.ref('resultadosEtapas').off();
-
+    // Reativa listeners se não estiverem ativos (ou no primeiro load)
+    dbRef.ref('corridas').off(); // Garante que não haja duplicatas
     dbRef.ref('corridas').on('value', snapshot => {
         appState.allCorridas = snapshot.val() || { copaAlcer: {}, geral: {} };
         renderContentV2();
-    }, error => {
-        console.error("Falha ao carregar o nó /corridas:", error);
-    });
+    }, error => console.error("Falha ao carregar /corridas:", error));
 
+    dbRef.ref('resultadosEtapas').off(); // Garante que não haja duplicatas
     dbRef.ref('resultadosEtapas').on('value', snapshot => {
         appState.resultadosEtapas = snapshot.val() || {};
         renderContentV2();
-    }, error => {
-        console.error("Falha ao carregar o nó /resultadosEtapas:", error);
-    });
+    }, error => console.error("Falha ao carregar /resultadosEtapas:", error));
 
-    // Ranking não precisa de listener em tempo real geralmente
     dbRef.ref('rankingCopaAlcer').once('value', snapshot => {
         appState.rankingData = snapshot.val() || {};
     });
@@ -1253,6 +1263,7 @@ function saveMediaUrlToFirebase(raceId, url) {
             dom.mediaPreview.src = "";
             dom.mediaPreviewContainer.style.display = 'none';
             dom.btnConfirmMediaUpload.disabled = false;
+            // O listener 'on(value)' em loadRaces() irá re-renderizar o card
         })
         .catch(err => {
             console.error("Erro ao salvar no Firebase:", err);
@@ -1426,7 +1437,7 @@ function updateProfilePictureUploadStatus(message, type) {
 }
 
 // ======================================================
-// SEÇÃO V6: LÓGICA DE CURTIDAS (LIKES)
+// SEÇÃO V6: LÓGICA DE CURTIDAS (LIKES - NOVA ESTRUTURA)
 // ======================================================
 
 // Função chamada ao clicar no botão de like
@@ -1437,44 +1448,55 @@ function toggleLike(likeButtonElement) {
     }
 
     const raceId = likeButtonElement.dataset.raceId;
-    const ownerUid = likeButtonElement.dataset.ownerUid;
-    const currentUserUid = authUser.uid;
+    const ownerUid = likeButtonElement.dataset.ownerUid; // UID do dono da corrida
+    const currentUserUid = authUser.uid; // UID de quem está curtindo
 
     if (!raceId || !ownerUid) {
         console.error("Faltando data attributes no botão de like:", likeButtonElement);
         return;
     }
 
-    // Referência para a corrida específica no banco de dados
-    const raceRef = firebase.database().ref(`/users/${ownerUid}/races/${raceId}`);
+    // Referência para o nó de interação da corrida específica
+    const interactionRef = firebase.database().ref(`/raceInteractions/${raceId}`);
 
-    // Executa a transação
-    raceRef.transaction(currentRaceData => {
-        if (currentRaceData === null) {
-            return null; // Corrida não existe mais? Aborta a transação.
+    // Executa a transação no nó de interações
+    interactionRef.transaction(currentInteractionData => {
+        // Se o nó não existe, inicializa-o (primeiro like nesta corrida)
+        if (currentInteractionData === null) {
+            return {
+                ownerUid: ownerUid, // Salva quem é o dono da corrida
+                likeCount: 1,
+                likes: {
+                    [currentUserUid]: true // Adiciona o like do usuário atual
+                }
+            };
         }
 
-        // Inicializa likes e likeCount se não existirem
-        if (!currentRaceData.likes) {
-            currentRaceData.likes = {};
+        // Se o nó já existe, atualiza likes e likeCount
+        if (!currentInteractionData.likes) {
+            currentInteractionData.likes = {}; // Garante que likes exista
         }
-        if (currentRaceData.likeCount === undefined || currentRaceData.likeCount === null) {
-             currentRaceData.likeCount = 0;
+        if (currentInteractionData.likeCount === undefined || currentInteractionData.likeCount === null) {
+             currentInteractionData.likeCount = 0; // Garante que likeCount exista
+        }
+        // Garante que ownerUid exista (caso tenha sido criado antes dessa lógica)
+        if (!currentInteractionData.ownerUid) {
+             currentInteractionData.ownerUid = ownerUid;
         }
 
 
         // Verifica se o usuário já curtiu
-        if (currentRaceData.likes[currentUserUid]) {
+        if (currentInteractionData.likes[currentUserUid]) {
             // Já curtiu -> Descurtir
-            currentRaceData.likeCount--;
-            currentRaceData.likes[currentUserUid] = null; // Remove a chave do usuário
+            currentInteractionData.likeCount--;
+            currentInteractionData.likes[currentUserUid] = null; // Remove a chave do usuário
         } else {
             // Não curtiu -> Curtir
-            currentRaceData.likeCount++;
-            currentRaceData.likes[currentUserUid] = true; // Adiciona a chave do usuário
+            currentInteractionData.likeCount++;
+            currentInteractionData.likes[currentUserUid] = true; // Adiciona a chave do usuário
         }
 
-        return currentRaceData; // Retorna os dados modificados para serem salvos
+        return currentInteractionData; // Retorna os dados modificados para serem salvos
     }, (error, committed, snapshot) => {
         if (error) {
             console.error('Falha na transação de like:', error);
@@ -1482,23 +1504,18 @@ function toggleLike(likeButtonElement) {
         } else if (committed) {
             // Transação bem-sucedida!
             console.log('Like/Unlike com sucesso!');
-            // Atualiza a UI localmente (o listener 'on value' em loadRaces também atualizará,
-            // mas podemos fazer uma atualização imediata para melhor feedback)
-            const updatedRaceData = snapshot.val();
-            updateLikeButtonUI(likeButtonElement, updatedRaceData.likeCount, !!updatedRaceData.likes[currentUserUid]);
-
-            // Atualiza também o estado local 'db.races' para consistência
-            if (db.races[raceId]) {
-                 db.races[raceId].likes = updatedRaceData.likes;
-                 db.races[raceId].likeCount = updatedRaceData.likeCount;
-            }
-
+            // Atualiza a UI localmente
+            const updatedInteractionData = snapshot.val();
+            // Verifica se o objeto e likes existem antes de acessar
+            const userLiked = updatedInteractionData?.likes?.[currentUserUid] || false;
+            updateLikeButtonUI(likeButtonElement, updatedInteractionData?.likeCount || 0, userLiked);
         } else {
-            // Transação abortada (ex: corrida não encontrada)
+            // Transação abortada (ex: conflito, regra negou - embora improvável com a nova regra)
             console.log('Transação de like abortada.');
         }
     });
 }
+
 
 // Atualiza a aparência do botão de like e o contador
 function updateLikeButtonUI(buttonElement, count, liked) {
@@ -1506,8 +1523,10 @@ function updateLikeButtonUI(buttonElement, count, liked) {
     const countElement = buttonElement.nextElementSibling; // Assume que o span do contador é o próximo irmão
 
     buttonElement.classList.toggle('liked', liked);
-    iconElement.classList.toggle('bx-heart', !liked);
-    iconElement.classList.toggle('bxs-heart', liked); // Ícone preenchido
+    if (iconElement) { // Adiciona verificação se ícone existe
+        iconElement.classList.remove('bx-heart', 'bxs-heart', 'bx-loader-alt', 'bx-spin'); // Limpa classes antigas
+        iconElement.classList.add(liked ? 'bxs-heart' : 'bx-heart'); // Adiciona classe correta
+    }
 
     if (countElement && countElement.classList.contains('like-count')) {
         countElement.textContent = count;
