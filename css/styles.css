@@ -1,5 +1,5 @@
 /* ================================================= */
-/* ESTILIZAÇÃO GERAL (V1 + V2 + V5)                  */
+/* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6)             */
 /* ================================================= */
 * {
     margin: 0;
@@ -703,7 +703,7 @@ body {
     box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
 }
 
-/* Histórico de Corrida Pessoal (V1) */
+/* Histórico de Corrida Pessoal (V1 + V6) */
 .history-section {
     padding: 30px;
     background: transparent;
@@ -813,14 +813,24 @@ body {
     justify-content: space-between;
     align-items: center;
 }
+.race-card-footer > div:first-child { /* Lado esquerdo do footer */
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espaço entre ícone juntos e notas */
+}
 .juntos-icon {
     font-size: 1.5em;
+    line-height: 1; /* Ajuste vertical */
 }
 .race-notes {
     font-size: 0.85em;
     color: #b0b0b0;
     font-style: italic;
-    margin-left: 10px;
+    /* margin-left removido, gap controla espaço */
+}
+.race-card-footer > div:last-child { /* Lado direito do footer */
+    display: flex;
+    align-items: center;
 }
 .race-distance {
     font-size: 1.1em;
@@ -839,7 +849,9 @@ body {
     font-size: 1em;
     color: #b0b0b0;
     opacity: 0.6;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, color 0.3s; /* Adicionado color */
+    padding: 5px; /* Adiciona área clicável */
+    line-height: 1; /* Garante alinhamento */
 }
 .btn-control:hover {
     opacity: 1;
@@ -1216,9 +1228,46 @@ dialog::backdrop {
     text-align: center;
 }
 
+/* ================================================= */
+/* NOVOS ESTILOS: CURTIDAS (LIKES) V6                */
+/* ================================================= */
+.race-card-social {
+    padding: 10px 20px;
+    background: #222230; /* Mesmo fundo do footer */
+    border-top: 1px solid #444; /* Separa do corpo ou mídia */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.like-button {
+    background: none;
+    border: none;
+    color: #b0b0b0; /* Cor padrão (não curtido) */
+    font-size: 1.6em; /* Tamanho do ícone */
+    cursor: pointer;
+    padding: 0; /* Remove padding padrão */
+    line-height: 1;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+.like-button:hover {
+    color: #f87171; /* Vermelho claro no hover */
+    transform: scale(1.1);
+}
+.like-button.liked {
+    color: #ef4444; /* Vermelho sólido quando curtido */
+}
+.like-button.liked i {
+    font-weight: bold; /* Usa ícone preenchido do boxicons ('bxs-heart') */
+}
+.like-count {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #c5cae9;
+}
+
 
 /* ================================================= */
-/* RESPONSIVIDADE (V1 + V2 + V5)                     */
+/* RESPONSIVIDADE (V1 + V2 + V5 + V6)                */
 /* ================================================= */
 @media (max-width: 900px) {
     .admin-grid { grid-template-columns: 1fr; }
