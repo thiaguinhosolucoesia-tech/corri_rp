@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE LÓGICA PRINCIPAL (V4 - Rede Social)
+// ARQUIVO DE LÓGICA PRINCIPAL (V5 - Perfis Detalhados)
 // =================================================================
 
 // --- Variáveis Globais do App ---
@@ -15,12 +15,12 @@ let appState = {
 };
 
 let firebaseApp, database, auth;
-let authUser = null; 
-let currentViewingUid = null; 
-let isAdmin = false; 
-let hasRunner2 = false; 
+let authUser = null;
+let currentViewingUid = null;
+let isAdmin = false;
+let hasRunner2 = false;
 
-// V4 - Constantes de Configuração (serão preenchidas no DOMContentLoaded)
+// V4/V5 - Constantes de Configuração (serão preenchidas no DOMContentLoaded)
 let CLOUDINARY_URL = "";
 let CLOUDINARY_PRESET = "";
 
@@ -30,11 +30,11 @@ const RUNNER_2_KEY = "runner2";
 let RUNNER_1_PROFILE = { name: 'Corredor 1', nameShort: 'Corredor 1', emoji: '🏃‍♂️' };
 let RUNNER_2_PROFILE = { name: 'Corredora 2', nameShort: 'Corredora 2', emoji: '🏃‍♀️' };
 
-// --- Cache de Elementos DOM (V1 + V2 + V4) ---
+// --- Cache de Elementos DOM (V1 + V2 + V4 + V5) ---
 const dom = {
-    // V1 (Perfis)
+    // V1 (Perfis & Auth)
     btnLogout: document.getElementById('btn-logout'),
-    btnBackToPublic: document.getElementById('btn-back-to-public'), 
+    btnBackToPublic: document.getElementById('btn-back-to-public'),
     btnBackToMyDashboard: document.getElementById('btn-back-to-my-dashboard'),
     userInfo: document.getElementById('user-info'),
     userEmail: document.getElementById('user-email'),
@@ -44,24 +44,29 @@ const dom = {
     loginEmail: document.getElementById('login-email'),
     loginPassword: document.getElementById('login-password'),
     loginError: document.getElementById('login-error'),
-    loginTitle: document.getElementById('login-title'), 
+    loginTitle: document.getElementById('login-title'),
     btnLoginSubmit: document.getElementById('btn-login-submit'),
-    btnSignUpSubmit: document.getElementById('btn-signup-submit'), 
-    loginToggleLink: document.getElementById('login-toggle-link'), 
-    signupFields: document.getElementById('signup-fields'), 
-    signupRunner1Name: document.getElementById('signup-runner1-name'), 
-    signupRunner2Name: document.getElementById('signup-runner2-name'), 
-    signupTeamName: document.getElementById('signup-team-name'), 
+    btnSignUpSubmit: document.getElementById('btn-signup-submit'),
+    loginToggleLink: document.getElementById('login-toggle-link'),
+    signupFields: document.getElementById('signup-fields'),
+    signupRunner1Name: document.getElementById('signup-runner1-name'),
+    signupRunner2Name: document.getElementById('signup-runner2-name'),
+    signupTeamName: document.getElementById('signup-team-name'),
     publicView: document.getElementById('public-view'),
     publicProfileListPublic: document.getElementById('public-profile-list-public'),
     publicProfileListLogged: document.getElementById('public-profile-list-logged'),
     userContent: document.getElementById('user-content'),
-    headerSubtitle: document.getElementById('header-subtitle'),
+    headerSubtitle: document.getElementById('header-subtitle'), // Nomes
     prGrid: document.getElementById('pr-grid'),
     summaryGrid: document.getElementById('summary-grid'),
     controlsSection: document.getElementById('controls-section'),
     btnAddnew: document.getElementById('btn-add-new'),
     historyContainer: document.getElementById('history-container'),
+    pendingApprovalView: document.getElementById('pending-approval-view'),
+    rejectedView: document.getElementById('rejected-view'),
+    rejectedEmail: document.getElementById('rejected-email'),
+
+    // V1 (Modal Corrida)
     modal: document.getElementById('race-modal'),
     form: document.getElementById('race-form'),
     modalTitle: document.getElementById('modal-title'),
@@ -70,10 +75,7 @@ const dom = {
     btnCancel: document.getElementById('btn-cancel'),
     runner1FormGroup: document.getElementById('runner1-form-group'),
     runner2FormGroup: document.getElementById('runner2-form-group'),
-    pendingApprovalView: document.getElementById('pending-approval-view'),
-    rejectedView: document.getElementById('rejected-view'), 
-    rejectedEmail: document.getElementById('rejected-email'),
-    
+
     // V2 (Calendário Público)
     copaContainerPublic: document.getElementById('copa-container-public'),
     geralContainerPublic: document.getElementById('geral-container-public'),
@@ -81,15 +83,15 @@ const dom = {
     copaContainerLogged: document.getElementById('copa-container-logged'),
     geralContainerLogged: document.getElementById('geral-container-logged'),
     resultadosContainerLogged: document.getElementById('resultados-container-logged'),
-    
-    // V2 (Modal de Resultados)
+
+    // V2 (Modal Resultados)
     modalOverlay: document.getElementById('modal-overlay'),
     modalTitleResults: document.getElementById('modal-title-results'),
     modalContentResults: document.getElementById('modal-content-results'),
     modalSearchInput: document.getElementById('modal-search-input'),
     btnCloseResultsModal: document.getElementById('btn-close-results-modal'),
-    
-    // V4 (Mídia)
+
+    // V4 (Modal Mídia)
     mediaModal: document.getElementById('media-modal'),
     mediaForm: document.getElementById('media-form'),
     mediaRaceIdInput: document.getElementById('media-race-id'),
@@ -100,11 +102,35 @@ const dom = {
     mediaFileInput: document.getElementById('media-file-input'),
     mediaPreviewContainer: document.getElementById('media-preview-container'),
     mediaPreview: document.getElementById('media-preview'),
-    mediaUploadStatus: document.getElementById('media-upload-status')
+    mediaUploadStatus: document.getElementById('media-upload-status'),
+
+    // V5 (Header Detalhado)
+    headerProfilePicture: document.getElementById('header-profile-picture'),
+    headerLocation: document.getElementById('header-location'),
+    headerBio: document.getElementById('header-bio'),
+    btnEditProfile: document.getElementById('btn-edit-profile'),
+
+    // V5 (Modal Edição Perfil)
+    profileEditModal: document.getElementById('profile-edit-modal'),
+    profileEditForm: document.getElementById('profile-edit-form'),
+    btnCloseProfileEditModal: document.getElementById('btn-close-profile-edit-modal'),
+    btnCancelProfileEdit: document.getElementById('btn-cancel-profile-edit'),
+    btnSaveProfileEdit: document.getElementById('btn-save-profile-edit'),
+    profileEditRunner1Name: document.getElementById('profile-edit-runner1-name'),
+    profileEditRunner2Name: document.getElementById('profile-edit-runner2-name'),
+    profileEditRunner2NameSeparator: document.getElementById('profile-edit-runner2-name-separator'),
+    profileEditTeam: document.getElementById('profile-edit-team'),
+    profileEditBio: document.getElementById('profile-edit-bio'),
+    profileEditLocation: document.getElementById('profile-edit-location'),
+    profileEditBirthdate: document.getElementById('profile-edit-birthdate'),
+    profileEditPictureInput: document.getElementById('profile-edit-picture-input'),
+    profileEditPicturePreviewContainer: document.getElementById('profile-edit-picture-preview-container'),
+    profileEditPicturePreview: document.getElementById('profile-edit-picture-preview'),
+    profilePictureUploadStatus: document.getElementById('profile-picture-upload-status')
 };
 
 // ======================================================
-// SEÇÃO V1: LÓGICA DE PERFIS DE USUÁRIO
+// SEÇÃO V1: LÓGICA DE PERFIS DE USUÁRIO (ATUALIZADA V5)
 // ======================================================
 
 // --- Funções Utilitárias de Tempo e Pace ---
@@ -147,42 +173,70 @@ function calculatePace(timeStr, distance) {
     return `${String(paceMinutes).padStart(2, '0')}:${String(paceSeconds).padStart(2, '0')} /km`;
 }
 
-// --- Funções de Lógica da Aplicação (V1) ---
+// --- Funções de Lógica da Aplicação (V1 + V5) ---
 
+// Atualiza a UI com base nos dados do perfil carregado (db.profile)
 function updateProfileUI() {
     const profile = db.profile;
-    hasRunner2 = false; 
-    
+    hasRunner2 = false;
+
     // Define perfis padrão
     RUNNER_1_PROFILE = { name: 'Corredor 1', nameShort: 'Corredor 1', emoji: '🏃‍♂️' };
     RUNNER_2_PROFILE = { name: 'Corredora 2', nameShort: 'Corredora 2', emoji: '🏃‍♀️' };
-    
-    if (profile && profile.runner1Name) {
-        RUNNER_1_PROFILE = { name: profile.runner1Name, nameShort: profile.runner1Name.split(' ')[0] || "Corredor", emoji: '🏃‍♂️' };
-    }
-    if (profile && profile.runner2Name && profile.runner2Name.trim() !== "") {
-         hasRunner2 = true; 
-         RUNNER_2_PROFILE = { name: profile.runner2Name, nameShort: profile.runner2Name.split(' ')[0] || "Corredora", emoji: '🏃‍♀️' };
-         dom.runner2FormGroup.classList.remove('hidden');
+
+    // V5 - Foto de Perfil Padrão
+    const defaultProfilePic = 'icons/icon-192x192.png';
+
+    if (profile) {
+        if (profile.runner1Name) {
+            RUNNER_1_PROFILE = { name: profile.runner1Name, nameShort: profile.runner1Name.split(' ')[0] || "Corredor", emoji: '🏃‍♂️' };
+        }
+        if (profile.runner2Name && profile.runner2Name.trim() !== "") {
+            hasRunner2 = true;
+            RUNNER_2_PROFILE = { name: profile.runner2Name, nameShort: profile.runner2Name.split(' ')[0] || "Corredora", emoji: '🏃‍♀️' };
+            dom.runner2FormGroup.classList.remove('hidden');
+        } else {
+            dom.runner2FormGroup.classList.add('hidden');
+        }
+
+        // V5 - Atualiza Header com Novos Dados
+        dom.headerProfilePicture.src = profile.profilePictureUrl || defaultProfilePic;
+        dom.headerLocation.textContent = profile.location || '';
+        dom.headerBio.textContent = profile.bio || '';
+        dom.headerLocation.classList.toggle('hidden', !profile.location);
+        dom.headerBio.classList.toggle('hidden', !profile.bio);
+
     } else {
-        dom.runner2FormGroup.classList.add('hidden'); 
+        // Caso não haja perfil (raro, mas defensivo)
+        dom.runner2FormGroup.classList.add('hidden');
+        dom.headerProfilePicture.src = defaultProfilePic;
+        dom.headerLocation.textContent = '';
+        dom.headerBio.textContent = '';
+        dom.headerLocation.classList.add('hidden');
+        dom.headerBio.classList.add('hidden');
     }
 
+    // Atualiza nomes no header e nos formulários
     let headerTitle = RUNNER_1_PROFILE.name;
-    if (hasRunner2) { 
+    if (hasRunner2) {
         headerTitle += ` & ${RUNNER_2_PROFILE.name}`;
     }
-    dom.headerSubtitle.textContent = headerTitle;
+    dom.headerSubtitle.textContent = headerTitle; // Nomes principais
 
     dom.runner1FormGroup.querySelector('h4').innerHTML = `${RUNNER_1_PROFILE.name} ${RUNNER_1_PROFILE.emoji}`;
     dom.runner2FormGroup.querySelector('h4').innerHTML = `${RUNNER_2_PROFILE.name} ${RUNNER_2_PROFILE.emoji}`;
+
+    // V5 - Mostra/Esconde botão Editar Perfil
+    const canEditProfile = authUser && authUser.uid === currentViewingUid;
+    dom.btnEditProfile.classList.toggle('hidden', !canEditProfile);
 }
+
 
 function renderDashboard() {
     const racesArray = Object.values(db.races);
     const prs = { runner1: {}, runner2: {} };
-    const distances = [2, 5, 6, 7, 10, 12, 16, 17]; 
-    
+    const distances = [2, 5, 6, 7, 10, 12, 16, 17];
+
     let totalKmRunner1 = 0, totalKmRunner2 = 0, totalRacesJuntos = 0, completedRacesRunner1 = 0, completedRacesRunner2 = 0;
 
     distances.forEach(d => {
@@ -191,9 +245,9 @@ function renderDashboard() {
     });
 
     racesArray.forEach(race => {
-        const runner1Data = race[RUNNER_1_KEY]; 
+        const runner1Data = race[RUNNER_1_KEY];
         const runner2Data = race[RUNNER_2_KEY];
-        
+
         if (race.juntos && runner1Data && runner1Data.status === 'completed' && runner2Data && runner2Data.status === 'completed') totalRacesJuntos++;
 
         if (runner1Data && runner1Data.status === 'completed') {
@@ -220,7 +274,7 @@ function renderDashboard() {
     dom.prGrid.innerHTML = distances.map(d => {
         const runner2PR_HTML = hasRunner2
             ? `<div class="runner-pr"><strong class="runner-pr-thamis">${RUNNER_2_PROFILE.nameShort}: ${prs.runner2[d].time}</strong></div>`
-            : ''; 
+            : '';
 
         return `
         <div class="stat-card pr-card">
@@ -303,12 +357,12 @@ function createRaceCard(race) {
     const card = document.createElement('div');
     const runner1Data = race[RUNNER_1_KEY];
     const runner2Data = race[RUNNER_2_KEY];
-    
+
     if (!runner1Data) {
         console.warn("Dados da corrida incompletos (Falta Runner 1):", race);
-        return card; 
+        return card;
     }
-    
+
     let cardStatus = 'completed';
     if (runner1Data.status === 'planned' || (runner2Data && runner2Data.status === 'planned')) cardStatus = 'planned';
     if (runner1Data.status === 'skipped' && (!runner2Data || runner2Data.status === 'skipped')) cardStatus = 'skipped';
@@ -318,7 +372,7 @@ function createRaceCard(race) {
 
     const runner1Dist = runner1Data.distance || race.distance;
     const runner1Pace = calculatePace(runner1Data.status === 'completed' ? runner1Data.time : runner1Data.goalTime, runner1Dist);
-    
+
     let runner2Dist = null;
     let runner2Pace = null;
     if(runner2Data) {
@@ -329,7 +383,7 @@ function createRaceCard(race) {
     let raceDistDisplay = '';
     if (race.distance) {
         raceDistDisplay = `${race.distance}km`;
-    } else if (runner1Dist && runner2Data && runner2Dist && runner1Dist !== runner2Dist) { 
+    } else if (runner1Dist && runner2Data && runner2Dist && runner1Dist !== runner2Dist) {
         raceDistDisplay = `${runner1Dist || '?'}k / ${runner2Dist || '?'}k`;
     } else {
         raceDistDisplay = `${runner1Dist || (runner2Data ? runner2Dist : '') || '?'}km`;
@@ -337,23 +391,23 @@ function createRaceCard(race) {
 
     const canEdit = authUser && authUser.uid === currentViewingUid;
 
-    // V4 - Lógica de Mídia
     let mediaHTML = '';
     if (race.media) {
         const mediaItems = Object.values(race.media);
-        mediaHTML = `
-        <div class="race-card-media">
-            <h4>Mídia da Corrida (${mediaItems.length})</h4>
-            <div class="media-gallery">
-                ${mediaItems.map(item => `
-                    <img src="${item.url}" alt="Foto da corrida" class="media-thumbnail" onclick="window.open('${item.url}')">
-                `).join('')}
+        if (mediaItems.length > 0) { // Só mostra se houver mídia
+            mediaHTML = `
+            <div class="race-card-media">
+                <h4>Mídia da Corrida (${mediaItems.length})</h4>
+                <div class="media-gallery">
+                    ${mediaItems.map(item => `
+                        <img src="${item.url}" alt="Foto da corrida" class="media-thumbnail" onclick="window.open('${item.url}')">
+                    `).join('')}
+                </div>
             </div>
-        </div>
-        `;
+            `;
+        }
     }
-    
-    // V4 - Botão de Mídia
+
     let mediaButtonHTML = '';
     if (canEdit && cardStatus === 'completed') {
         mediaButtonHTML = `<button class="btn-control btn-add-media" data-race-id="${race.id}" title="Adicionar Mídia">📸</button>`;
@@ -368,20 +422,22 @@ function createRaceCard(race) {
             ${createRunnerInfoHTML(RUNNER_1_PROFILE, runner1Data, runner1Dist, runner1Pace, 'runner1')}
             ${(hasRunner2 && runner2Data) ? createRunnerInfoHTML(RUNNER_2_PROFILE, runner2Data, runner2Dist, runner2Pace, 'runner2') : ''}
         </div>
-        ${mediaHTML} <div class="race-card-footer">
+        ${mediaHTML}
+        <div class="race-card-footer">
             <div>
                 <span class="juntos-icon">${(hasRunner2 && race.juntos) ? '👩🏻‍❤️‍👨🏻' : ''}</span>
                 <span class="race-notes">${race.notes || ''}</span>
             </div>
             <div style="display: flex; align-items: center;">
                 <span class="race-distance">${raceDistDisplay}</span>
-                ${mediaButtonHTML} <div class="race-controls ${canEdit ? '' : 'hidden'}">
+                ${mediaButtonHTML}
+                <div class="race-controls ${canEdit ? '' : 'hidden'}">
                     <button class="btn-control btn-edit" title="Editar">✏️</button>
                     <button class="btn-control btn-delete" title="Excluir">🗑️</button>
                 </div>
             </div>
         </div>`;
-    
+
     if(canEdit) {
         card.querySelector('.btn-edit').addEventListener('click', (e) => {
             e.stopPropagation();
@@ -391,12 +447,11 @@ function createRaceCard(race) {
             e.stopPropagation();
             deleteRace(race.id);
         });
-        
-        // V4 - Listener do botão de mídia
+
         const mediaBtn = card.querySelector('.btn-add-media');
         if (mediaBtn) {
             mediaBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Previne o card de ser clicado
+                e.stopPropagation();
                 openMediaUploadModal(e.currentTarget.dataset.raceId);
             });
         }
@@ -437,8 +492,8 @@ function openModal(raceId = null) {
     dom.form.reset();
     document.getElementById('race-id').value = '';
     dom.btnDelete.classList.add('hidden');
-    
-    updateProfileUI(); 
+
+    updateProfileUI(); // Garante que a exibição R1/R2 está correta
 
     if (raceId) {
         dom.modalTitle.textContent = 'Editar Corrida Pessoal';
@@ -446,10 +501,10 @@ function openModal(raceId = null) {
         const race = db.races[raceId];
         if (!race) return;
 
-        document.getElementById('race-id').value = raceId; 
+        document.getElementById('race-id').value = raceId;
         document.getElementById('raceName').value = race.raceName;
         document.getElementById('raceDate').value = race.date;
-        document.getElementById('raceDistance').value = race.distance;
+        document.getElementById('raceDistance').value = race.distance || ''; // Garante que seja string vazia se nulo
         document.getElementById('raceJuntos').checked = race.juntos;
         document.getElementById('raceNotes').value = race.notes || '';
 
@@ -462,8 +517,8 @@ function openModal(raceId = null) {
             document.getElementById('runner1Time').value = normalizeTime(runner1Time) ? secondsToTime(timeToSeconds(runner1Time)) : '';
             document.getElementById('runner1Distance').value = runner1Data.distance || '';
         }
-        
-        if(runner2Data){
+
+        if(runner2Data && hasRunner2){ // Só preenche se runner2 existir no perfil
             document.getElementById('runner2Status').value = runner2Data.status || 'skipped';
             const runner2Time = runner2Data.status === 'completed' ? runner2Data.time : (runner2Data.goalTime || runner2Data.time || '');
             document.getElementById('runner2Time').value = normalizeTime(runner2Time) ? secondsToTime(timeToSeconds(runner2Time)) : '';
@@ -488,12 +543,12 @@ function handleFormSubmit(e) {
 
     const id = document.getElementById('race-id').value;
     const date = document.getElementById('raceDate').value;
-    
+
     const runner1TimeRaw = document.getElementById('runner1Time').value;
     const runner2TimeRaw = document.getElementById('runner2Time').value;
     const runner1Status = document.getElementById('runner1Status').value;
     const runner2Status = document.getElementById('runner2Status').value;
-    
+
     const raceData = {
         date: date,
         year: new Date(date + 'T00:00:00').getFullYear().toString(),
@@ -507,50 +562,49 @@ function handleFormSubmit(e) {
             goalTime: runner1Status === 'planned' ? normalizeTime(runner1TimeRaw) : null,
             distance: parseFloat(document.getElementById('runner1Distance').value) || null
         },
-        [RUNNER_2_KEY]: {
+        [RUNNER_2_KEY]: hasRunner2 ? { // Só inclui R2 se o perfil tiver R2
             status: runner2Status,
             time: runner2Status === 'completed' ? normalizeTime(runner2TimeRaw) : null,
             goalTime: runner2Status === 'planned' ? normalizeTime(runner2TimeRaw) : null,
             distance: parseFloat(document.getElementById('runner2Distance').value) || null
-        }
+        } : null // Ou define como null se não houver R2 no perfil
     };
-    
-    // V4 - Preserva a mídia existente se estiver editando
+
     if (id && db.races[id] && db.races[id].media) {
         raceData.media = db.races[id].media;
     }
-    
+
     const dbPath = `/users/${currentViewingUid}/races/`;
 
+    let promise;
     if (id) {
-        firebase.database().ref(dbPath).child(id).set(raceData)
-            .then(closeModal)
-            .catch(err => {
-                console.error("Erro ao atualizar:", err);
-                alert("Erro ao salvar: " + err.message);
-            });
+        promise = firebase.database().ref(dbPath).child(id).set(raceData);
     } else {
-        const newRaceRef = firebase.database().ref(dbPath).push();
-        newRaceRef.set(raceData)
-            .then(closeModal)
-            .catch(err => {
-                 console.error("Erro ao criar:", err);
-                 alert("Erro ao salvar: " + err.message);
-            });
+        promise = firebase.database().ref(dbPath).push(raceData);
     }
+
+    promise.then(closeModal)
+           .catch(err => {
+               console.error("Erro ao salvar corrida:", err);
+               alert("Erro ao salvar: " + err.message);
+           });
 }
+
 
 function deleteRace(raceId) {
     if (!currentViewingUid || !authUser || currentViewingUid !== authUser.uid) {
         alert("Erro: Você deve estar logado para excluir.");
         return;
     }
-    
+
     const race = db.races[raceId];
     if (!confirm(`Tem certeza que deseja excluir esta corrida?\n\n${race.raceName} (${race.date})`)) return;
 
     firebase.database().ref(`/users/${currentViewingUid}/races/`).child(raceId).remove()
-        .then(closeModal) 
+        .then(() => {
+            console.log("Corrida excluída:", raceId);
+            closeModal(); // Fecha o modal se estava aberto para edição
+        })
         .catch(err => {
             console.error("Erro ao excluir:", err);
             alert("Erro ao excluir: " + err.message);
@@ -558,63 +612,80 @@ function deleteRace(raceId) {
 }
 
 function renderAllV1Profile() {
-    updateProfileUI(); 
+    updateProfileUI();
     renderDashboard();
     renderHistory();
 }
 
-// --- Funções de Carregamento de Dados (V1) ---
+// --- Funções de Carregamento de Dados (V1 + V5) ---
 
 function loadProfile(uid) {
     const profileRef = firebase.database().ref(`/users/${uid}/profile`);
+    // Usamos 'once' para carregar os dados do perfil uma vez quando visualizamos
     profileRef.once('value', (snapshot) => {
-        const profileData = snapshot.val();
-        if (profileData) {
-            db.profile = profileData;
-            renderAllV1Profile(); 
-        } else {
-            // Caso de usuário sem perfil (ex: admin recém-aprovado sem dados)
-            db.profile = {}; 
-            renderAllV1Profile();
-        }
-    });
-}
-
-function loadRaces(uid) {
-    currentViewingUid = uid; 
-
-    if (authUser && authUser.uid === currentViewingUid) {
-        dom.controlsSection.classList.remove('hidden');
-    } else {
-        dom.controlsSection.classList.add('hidden');
-    }
-
-    const racesRef = firebase.database().ref(`/users/${uid}/races`);
-    
-    db.races = {};
-    dom.prGrid.innerHTML = '<div class="loader">Carregando PRs...</div>';
-    dom.summaryGrid.innerHTML = '<div class="loader">Calculando...</div>';
-    dom.historyContainer.innerHTML = '<div class="loader">Carregando histórico...</div>';
-    
-    racesRef.on('value', (snapshot) => {
-        db.races = snapshot.val() || {};
+        db.profile = snapshot.val() || {}; // Define como objeto vazio se não existir
+        renderAllV1Profile();
+    }, (error) => {
+        console.error("Erro ao carregar perfil:", error);
+        db.profile = {}; // Define como vazio em caso de erro
         renderAllV1Profile();
     });
 }
 
+
+function loadRaces(uid) {
+    currentViewingUid = uid;
+
+    // Controla visibilidade dos botões de ação do usuário
+    const isOwner = authUser && authUser.uid === currentViewingUid;
+    dom.controlsSection.classList.toggle('hidden', !isOwner);
+    dom.btnEditProfile.classList.toggle('hidden', !isOwner);
+
+    const racesRef = firebase.database().ref(`/users/${uid}/races`);
+
+    // Limpa antes de carregar
+    db.races = {};
+    dom.prGrid.innerHTML = '<div class="loader">Carregando PRs...</div>';
+    dom.summaryGrid.innerHTML = '<div class="loader">Calculando...</div>';
+    dom.historyContainer.innerHTML = '<div class="loader">Carregando histórico...</div>';
+
+    // Remove listener antigo, se houver, para evitar duplicação ao trocar de perfil
+    racesRef.off('value');
+
+    // Listener em tempo real para as corridas
+    racesRef.on('value', (snapshot) => {
+        db.races = snapshot.val() || {};
+        renderAllV1Profile(); // Re-renderiza tudo que depende das corridas
+    }, (error) => {
+        console.error("Erro ao carregar corridas:", error);
+        db.races = {}; // Define como vazio em caso de erro
+        renderAllV1Profile();
+    });
+}
+
+
+// Carrega e exibe a lista de perfis públicos
 function loadPublicView() {
     if(!authUser) {
         dom.headerSubtitle.textContent = "Selecione um currículo ou faça login";
+        dom.headerProfilePicture.src = 'icons/icon-192x192.png'; // Imagem padrão
+        dom.headerLocation.classList.add('hidden');
+        dom.headerBio.classList.add('hidden');
     }
-    
+
     const publicProfilesRef = firebase.database().ref('/publicProfiles');
+
+    // Remove listener antigo para evitar duplicação
+    publicProfilesRef.off('value');
+
     publicProfilesRef.on('value', (snapshot) => {
-        const profiles = snapshot.val();
-        
+        const profiles = snapshot.val() || {};
+
+        // Limpa ambas as listas
         if (dom.publicProfileListPublic) dom.publicProfileListPublic.innerHTML = '';
         if (dom.publicProfileListLogged) dom.publicProfileListLogged.innerHTML = '';
 
-        if(profiles) {
+        if(Object.keys(profiles).length > 0) {
             const createProfileCard = (uid, profile) => {
                 const card = document.createElement('div');
                 card.className = 'profile-card';
@@ -622,36 +693,44 @@ function loadPublicView() {
                 const runner2HTML = profile.runner2Name && profile.runner2Name.trim() !== ""
                     ? `<h3 class="runner2-name">${profile.runner2Name}</h3>`
                     : '';
+                const profilePicUrl = profile.profilePictureUrl || 'icons/icon-192x192.png'; // V5
 
                 card.innerHTML = `
-                    <h3>${profile.runner1Name || 'Corredor 1'}</h3>
-                    ${runner2HTML}
-                    <p>${profile.teamName || 'Equipe'}</p>
+                    <img src="${profilePicUrl}" alt="Foto Perfil" class="profile-card-pic">
+                    <div class="profile-card-info">
+                        <h3>${profile.runner1Name || 'Corredor'}</h3>
+                        ${runner2HTML}
+                        <p>${profile.teamName || 'Equipe'}</p>
+                    </div>
                 `;
 
                 card.addEventListener('click', () => {
+                    // Navega para a visualização do perfil clicado
                     if (!authUser) {
                         dom.loginOrPublicView.classList.add('hidden');
                         dom.userContent.classList.remove('hidden');
-                        dom.btnBackToPublic.classList.remove('hidden'); 
+                        dom.btnBackToPublic.classList.remove('hidden');
                         dom.btnBackToMyDashboard.classList.add('hidden');
                     } else {
                         dom.btnBackToPublic.classList.add('hidden');
-                        dom.btnBackToMyDashboard.classList.remove('hidden'); 
+                        dom.btnBackToMyDashboard.classList.remove('hidden');
                     }
-                    loadProfile(uid); 
-                    loadRaces(uid);   
+                    loadProfile(uid); // Carrega perfil clicado
+                    loadRaces(uid);   // Carrega corridas do perfil clicado
                 });
                 return card;
             };
 
             Object.entries(profiles).forEach(([uid, profile]) => {
+                // Adiciona ao container PÚBLICO
                 if (dom.publicProfileListPublic) {
                     dom.publicProfileListPublic.appendChild(createProfileCard(uid, profile));
                 }
+                // Adiciona ao container LOGADO (exceto o próprio usuário)
                 if (dom.publicProfileListLogged) {
-                    if(authUser && authUser.uid === uid) return; 
-                    dom.publicProfileListLogged.appendChild(createProfileCard(uid, profile));
+                    if(!(authUser && authUser.uid === uid)) { // Não mostra o próprio perfil
+                        dom.publicProfileListLogged.appendChild(createProfileCard(uid, profile));
+                    }
                 }
             });
         } else {
@@ -668,77 +747,92 @@ function showLoggedOutView() {
     authUser = null;
     isAdmin = false;
     currentViewingUid = null;
-    
+
+    // Desliga listeners específicos do usuário anterior, se houver
+    if (currentViewingUid) {
+        firebase.database().ref(`/users/${currentViewingUid}/races`).off();
+    }
+    // Listeners públicos (perfis, corridas, resultados) permanecem ativos
+
     dom.btnLogout.classList.add('hidden');
-    dom.btnBackToPublic.classList.add('hidden'); 
+    dom.btnBackToPublic.classList.add('hidden');
     dom.btnBackToMyDashboard.classList.add('hidden');
     dom.userInfo.classList.add('hidden');
     dom.controlsSection.classList.add('hidden');
+    dom.btnEditProfile.classList.add('hidden'); // V5
     dom.pendingApprovalView.classList.add('hidden');
-    dom.rejectedView.classList.add('hidden'); 
-    
+    dom.rejectedView.classList.add('hidden');
+
     dom.loginOrPublicView.classList.remove('hidden');
-    dom.publicView.classList.remove('hidden'); 
-    dom.userContent.classList.add('hidden'); 
+    dom.publicView.classList.remove('hidden');
+    dom.userContent.classList.add('hidden');
     dom.loginError.textContent = '';
     dom.loginForm.reset();
-    toggleLoginMode(false); 
-    
-    db = { races: {}, profile: {} };
-    loadPublicView(); 
-    fetchAllData(); 
+    toggleLoginMode(false);
+
+    db = { races: {}, profile: {} }; // Limpa dados locais
+    loadPublicView(); // Carrega perfis públicos V1/V5
+    fetchAllData(); // Carrega calendário V2
 }
 
+
 function showPendingView() {
-    dom.btnLogout.classList.remove('hidden'); 
+    dom.btnLogout.classList.remove('hidden');
     dom.userInfo.classList.remove('hidden');
     dom.userEmail.textContent = authUser.email;
-    
+
     dom.loginOrPublicView.classList.add('hidden');
     dom.userContent.classList.add('hidden');
     dom.btnBackToPublic.classList.add('hidden');
     dom.rejectedView.classList.add('hidden');
-    
-    dom.pendingApprovalView.classList.remove('hidden'); 
+    dom.btnEditProfile.classList.add('hidden'); // V5
+
+    dom.pendingApprovalView.classList.remove('hidden');
 }
 
 function showRejectedView(email) {
-    dom.btnLogout.classList.remove('hidden'); 
+    dom.btnLogout.classList.remove('hidden');
     dom.userInfo.classList.remove('hidden');
     dom.userEmail.textContent = email;
-    
+
     dom.loginOrPublicView.classList.add('hidden');
     dom.userContent.classList.add('hidden');
     dom.btnBackToPublic.classList.add('hidden');
     dom.pendingApprovalView.classList.add('hidden');
-    
+    dom.btnEditProfile.classList.add('hidden'); // V5
+
     dom.rejectedEmail.textContent = email;
-    dom.rejectedView.classList.remove('hidden'); 
+    dom.rejectedView.classList.remove('hidden');
 }
 
 function showUserDashboard(user) {
     dom.btnLogout.classList.remove('hidden');
     dom.userInfo.classList.remove('hidden');
     dom.userEmail.textContent = user.email;
-    
+
     dom.loginOrPublicView.classList.add('hidden');
     dom.pendingApprovalView.classList.add('hidden');
     dom.rejectedView.classList.add('hidden');
-    dom.btnBackToPublic.classList.add('hidden'); 
-    dom.btnBackToMyDashboard.classList.add('hidden'); 
-    
+    dom.btnBackToPublic.classList.add('hidden');
+    dom.btnBackToMyDashboard.classList.add('hidden');
+
     dom.userContent.classList.remove('hidden');
 
-    loadProfile(user.uid); 
-    loadRaces(user.uid); 
-    fetchAllData(); 
-    loadPublicView(); 
-    
+    // Carrega dados específicos do usuário
+    loadProfile(user.uid); // Carrega perfil V1/V5
+    loadRaces(user.uid);   // Carrega corridas V1 (agora controla botões de edição)
+
+    // Carrega dados públicos
+    fetchAllData();        // Carrega calendário V2
+    loadPublicView();      // Carrega lista de outros perfis públicos V1/V5
+
+    // Configura painel de admin, se aplicável
     if (isAdmin) {
         dom.userInfo.classList.add('admin-user');
-        initializeAdminPanel(user.uid, database);
+        initializeAdminPanel(user.uid, database); // Chama a função do admin-logic.js
     } else {
          dom.userInfo.classList.remove('admin-user');
+         // O painel é oculto por padrão no HTML e só é mostrado em initializeAdminPanel
     }
 }
 
@@ -771,9 +865,9 @@ function handleSignUp(e) {
     const email = dom.loginEmail.value;
     const password = dom.loginPassword.value;
     const runner1Name = dom.signupRunner1Name.value;
-    
-    dom.loginError.textContent = ''; 
-    
+
+    dom.loginError.textContent = '';
+
     if (password.length < 6) {
         showLoginError("A senha deve ter pelo menos 6 caracteres.");
         return;
@@ -782,11 +876,11 @@ function handleSignUp(e) {
         showLoginError("O 'Seu nome' (Corredor 1) é obrigatório.");
         return;
     }
-    
+
     auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
             const user = userCredential.user;
-            
+
             const pendingRef = firebase.database().ref('/pendingApprovals/' + user.uid);
             pendingRef.set({
                 email: user.email,
@@ -795,11 +889,11 @@ function handleSignUp(e) {
                 runner2Name: dom.signupRunner2Name.value || "",
                 teamName: dom.signupTeamName.value || ""
             });
-            
+
             console.log("Novo usuário cadastrado e aguardando aprovação:", user.uid);
             dom.loginForm.reset();
-            toggleLoginMode(false); 
-            showLoginError("Cadastro realizado! Aguardando aprovação do admin."); 
+            toggleLoginMode(false);
+            showLoginError("Cadastro realizado! Aguardando aprovação do admin.");
         })
         .catch(err => {
             console.error("Erro no cadastro:", err.code, err.message);
@@ -815,7 +909,7 @@ function handleSignIn(e) {
     e.preventDefault();
     const email = dom.loginEmail.value;
     const password = dom.loginPassword.value;
-    dom.loginError.textContent = ''; 
+    dom.loginError.textContent = '';
 
     auth.signInWithEmailAndPassword(email, password)
         .catch(err => {
@@ -829,14 +923,11 @@ function handleSignIn(e) {
 }
 
 function signOut() {
-    firebase.database().ref('/pendingApprovals').off();
+    // Desliga listeners de dados públicos que usam .on()
     firebase.database().ref('/publicProfiles').off();
-    if(currentViewingUid) {
-        firebase.database().ref(`/users/${currentViewingUid}/profile`).off();
-        firebase.database().ref(`/users/${currentViewingUid}/races`).off();
-    }
     firebase.database().ref('corridas').off();
     firebase.database().ref('resultadosEtapas').off();
+    // Listeners de dados do usuário (.on()) já são desligados em showLoggedOutView
 
     auth.signOut().catch(err => console.error("Erro no logout:", err));
 }
@@ -847,27 +938,32 @@ function signOut() {
 // ======================================================
 
 function fetchAllData() {
-    const db = firebase.database();
+    const dbRef = firebase.database();
 
-    db.ref('corridas').on('value', snapshot => {
+    // Remove listeners antigos para evitar duplicação
+    dbRef.ref('corridas').off();
+    dbRef.ref('resultadosEtapas').off();
+
+    dbRef.ref('corridas').on('value', snapshot => {
         appState.allCorridas = snapshot.val() || { copaAlcer: {}, geral: {} };
-        console.log("Calendário V2 (Corridas) carregado:", appState.allCorridas);
-        renderContentV2(); 
+        // console.log("Calendário V2 (Corridas) carregado:", appState.allCorridas);
+        renderContentV2();
     }, error => {
         console.error("Falha ao carregar o nó /corridas:", error);
     });
 
-    db.ref('resultadosEtapas').on('value', snapshot => {
+    dbRef.ref('resultadosEtapas').on('value', snapshot => {
         appState.resultadosEtapas = snapshot.val() || {};
-        console.log("Calendário V2 (Resultados) carregado:", appState.resultadosEtapas);
-        renderContentV2(); 
+        // console.log("Calendário V2 (Resultados) carregado:", appState.resultadosEtapas);
+        renderContentV2();
     }, error => {
         console.error("Falha ao carregar o nó /resultadosEtapas:", error);
     });
 
-    db.ref('rankingCopaAlcer').once('value', snapshot => {
+    // Ranking não precisa de listener em tempo real geralmente
+    dbRef.ref('rankingCopaAlcer').once('value', snapshot => {
         appState.rankingData = snapshot.val() || {};
-        console.log("Calendário V2 (Ranking) carregado:", appState.rankingData);
+        // console.log("Calendário V2 (Ranking) carregado:", appState.rankingData);
     });
 }
 
@@ -878,15 +974,20 @@ function renderContentV2() {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
-    const corridasAgendadasCopa = todasCorridasCopa.filter(c => new Date(c.data) >= hoje);
-    const corridasRealizadas = todasCorridasCopa.filter(c => new Date(c.data) < hoje);
-    
+    // Ajuste na comparação de datas para incluir o dia de hoje nas corridas agendadas
+    const corridasAgendadasCopa = todasCorridasCopa.filter(c => new Date(c.data + 'T00:00:00') >= hoje);
+    const corridasAgendadasGerais = todasCorridasGerais.filter(c => new Date(c.data + 'T00:00:00') >= hoje);
+    // Corridas realizadas são as que a data é estritamente menor que hoje
+    const corridasRealizadas = [...todasCorridasCopa, ...todasCorridasGerais]
+                                .filter(c => new Date(c.data + 'T00:00:00') < hoje);
+
+
     renderCalendar(corridasAgendadasCopa, dom.copaContainerPublic, 'inscrições');
-    renderCalendar(todasCorridasGerais, dom.geralContainerPublic, 'inscrições');
+    renderCalendar(corridasAgendadasGerais, dom.geralContainerPublic, 'inscrições'); // Corrigido para gerais agendadas
     renderCalendar(corridasRealizadas, dom.resultadosContainerPublic, 'resultados');
-    
+
     renderCalendar(corridasAgendadasCopa, dom.copaContainerLogged, 'inscrições');
-    renderCalendar(todasCorridasGerais, dom.geralContainerLogged, 'inscrições');
+    renderCalendar(corridasAgendadasGerais, dom.geralContainerLogged, 'inscrições'); // Corrigido para gerais agendadas
     renderCalendar(corridasRealizadas, dom.resultadosContainerLogged, 'resultados');
 }
 
@@ -896,19 +997,25 @@ function renderCalendar(corridas, container, buttonType) {
         container.innerHTML = `<p class="loader" style="font-size: 0.9em; color: #999;">Nenhuma corrida nesta categoria.</p>`;
         return;
     }
-    
-    const sortedCorridas = corridas.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+    const sortedCorridas = corridas.sort((a, b) => {
+        // Ordena por data (mais recente primeiro para resultados, mais próxima primeiro para agendadas)
+        const dateA = new Date(a.data + 'T00:00:00');
+        const dateB = new Date(b.data + 'T00:00:00');
+        return buttonType === 'resultados' ? dateB - dateA : dateA - dateB;
+    });
+
     container.innerHTML = sortedCorridas.map(corrida => {
-        const dataObj = new Date(`${corrida.data}T12:00:00Z`);
-        const dia = String(dataObj.getDate()).padStart(2, '0');
-        const mes = dataObj.toLocaleString("pt-BR", { month: "short" }).replace(".", "").toUpperCase();
-        
+        const dataObj = new Date(`${corrida.data}T12:00:00Z`); // Usar UTC para evitar problemas de fuso
+        const dia = String(dataObj.getUTCDate()).padStart(2, '0');
+        const mes = dataObj.toLocaleString("pt-BR", { month: "short", timeZone: 'UTC' }).replace(".", "").toUpperCase();
+
         let actionButtonHTML = '';
         if (buttonType === 'inscrições') {
             actionButtonHTML = corrida.linkInscricao ?
                 `<a href="${corrida.linkInscricao}" target="_blank" rel="noopener noreferrer" class="v2-inscricoes-button"><i class='bx bx-link-external' style="margin-right: 5px;"></i>Inscrições</a>` :
-                `<div class="v2-race-button-disabled">Inscrições Encerradas</div>`;
-        } else { 
+                `<div class="v2-race-button-disabled">Em Breve</div>`;
+        } else {
             actionButtonHTML = appState.resultadosEtapas[corrida.id] ?
                 `<button class="v2-results-button" data-race-id="${corrida.id}"><i class='bx bx-table' style="margin-right: 5px;"></i>Ver Resultados</button>` :
                 `<div class="v2-race-button-disabled">Resultados em Breve</div>`;
@@ -950,36 +1057,44 @@ function showRaceResultsModal(raceId) {
     }
 
     dom.modalTitleResults.textContent = `Resultados - ${race.nome}`;
-    
+
     let contentHTML = '';
-    for (const percurso in results) {
-        for (const genero in results[percurso]) {
-            const atletas = results[percurso][genero];
-            if (atletas && atletas.length > 0) {
-                contentHTML += `<h3 class="v2-modal-category-title">${percurso} - ${genero.charAt(0).toUpperCase() + genero.slice(1)}</h3>`;
-                contentHTML += `
-                    <div style="overflow-x: auto;">
-                        <table class="v2-results-table">
-                            <thead><tr><th>#</th><th>Atleta</th><th>Equipe</th><th>Tempo</th></tr></thead>
-                            <tbody>
-                                ${atletas.map(atleta => `
-                                    <tr>
-                                        <td class="font-medium">${atleta.classificacao}</td>
-                                        <td>${atleta.nome}</td>
-                                        <td style="color: #b0b0b0;">${atleta.assessoria || 'Individual'}</td>
-                                        <td style="font-family: monospace;">${atleta.tempo}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>`;
+    // Itera sobre as chaves (distâncias/categorias) e depois gêneros
+    for (const categoryKey in results) {
+        if (results.hasOwnProperty(categoryKey)) {
+             for (const genderKey in results[categoryKey]) {
+                 if (results[categoryKey].hasOwnProperty(genderKey)) {
+                    const atletas = results[categoryKey][genderKey];
+                    if (atletas && atletas.length > 0) {
+                        contentHTML += `<h3 class="v2-modal-category-title">${categoryKey} - ${genderKey.charAt(0).toUpperCase() + genderKey.slice(1)}</h3>`;
+                        contentHTML += `
+                            <div style="overflow-x: auto;">
+                                <table class="v2-results-table">
+                                    <thead><tr><th>#</th><th>Atleta</th><th>Equipe</th><th>Tempo</th></tr></thead>
+                                    <tbody>
+                                        ${atletas.map(atleta => `
+                                            <tr>
+                                                <td class="font-medium">${atleta.classificacao}</td>
+                                                <td>${atleta.nome}</td>
+                                                <td style="color: #b0b0b0;">${atleta.assessoria || 'Individual'}</td>
+                                                <td style="font-family: monospace;">${atleta.tempo}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>`;
+                    }
+                 }
             }
         }
     }
-    dom.modalContentResults.innerHTML = contentHTML;
+
+    dom.modalContentResults.innerHTML = contentHTML || '<p>Nenhum resultado encontrado nesta categoria.</p>';
     dom.modalSearchInput.value = '';
+    filterResultsInModal(); // Aplica filtro inicial (mostrar tudo)
     dom.modalOverlay.classList.remove('hidden');
 }
+
 
 function filterResultsInModal() {
     const searchTerm = dom.modalSearchInput.value.toUpperCase();
@@ -1003,7 +1118,7 @@ function openMediaUploadModal(raceId) {
         console.error("Corrida não encontrada para upload de mídia:", raceId);
         return;
     }
-    
+
     dom.mediaForm.reset();
     dom.mediaRaceIdInput.value = raceId;
     dom.mediaModalTitle.textContent = `Adicionar Mídia: ${race.raceName}`;
@@ -1012,7 +1127,7 @@ function openMediaUploadModal(raceId) {
     dom.mediaUploadStatus.textContent = '';
     dom.mediaUploadStatus.className = 'upload-status';
     dom.btnConfirmMediaUpload.disabled = false;
-    
+
     dom.mediaModal.showModal();
 }
 
@@ -1022,29 +1137,40 @@ function closeMediaUploadModal() {
 
 function handleMediaFileSelect(e) {
     const file = e.target.files[0];
-    if (file) {
+    if (file && file.type.startsWith('image/')) { // Valida se é imagem
         const reader = new FileReader();
         reader.onload = function(event) {
             dom.mediaPreview.src = event.target.result;
             dom.mediaPreviewContainer.style.display = 'block';
         }
         reader.readAsDataURL(file);
-        
+
         dom.mediaUploadStatus.textContent = '';
         dom.mediaUploadStatus.className = 'upload-status';
+    } else {
+        dom.mediaPreview.src = "";
+        dom.mediaPreviewContainer.style.display = 'none';
+        if (file) { // Se um arquivo foi selecionado mas não é imagem
+             updateMediaUploadStatus("Por favor, selecione um arquivo de imagem.", "error");
+        }
     }
 }
+
 
 function handleMediaUploadSubmit(e) {
     e.preventDefault();
     const file = dom.mediaFileInput.files[0];
     const raceId = dom.mediaRaceIdInput.value;
-    
+
     if (!file || !raceId) {
         updateMediaUploadStatus("Por favor, selecione um arquivo.", "error");
         return;
     }
-    
+    if (!file.type.startsWith('image/')) {
+        updateMediaUploadStatus("Arquivo inválido. Selecione uma imagem.", "error");
+        return;
+    }
+
     dom.btnConfirmMediaUpload.disabled = true;
     updateMediaUploadStatus("Enviando imagem...", "loading");
 
@@ -1056,20 +1182,14 @@ function handleMediaUploadSubmit(e) {
         method: 'POST',
         body: formData
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Falha no upload: ${response.statusText}`);
-        }
-        return response.json();
-    })
+    .then(response => response.json()) // Lê a resposta JSON independentemente do status
     .then(data => {
-        const imageUrl = data.secure_url;
-        if (!imageUrl) {
-            throw new Error("Resposta do Cloudinary não contém 'secure_url'.");
+        if (!data.secure_url) { // Verifica se a URL esperada existe na resposta
+            console.error("Resposta inesperada do Cloudinary:", data);
+            throw new Error(data.error?.message || "Resposta inválida do Cloudinary (sem secure_url).");
         }
-        
         updateMediaUploadStatus("Salvando referência...", "loading");
-        saveMediaUrlToFirebase(raceId, imageUrl);
+        saveMediaUrlToFirebase(raceId, data.secure_url);
     })
     .catch(err => {
         console.error("Erro no upload para Cloudinary:", err);
@@ -1078,27 +1198,33 @@ function handleMediaUploadSubmit(e) {
     });
 }
 
+
 function saveMediaUrlToFirebase(raceId, url) {
-    const uid = authUser.uid;
+    const uid = authUser?.uid; // Usa optional chaining
     if (!uid) {
          updateMediaUploadStatus("Erro: Usuário não autenticado.", "error");
          dom.btnConfirmMediaUpload.disabled = false;
          return;
     }
-    
+
     const mediaRef = firebase.database().ref(`/users/${uid}/races/${raceId}/media`).push();
-    
+
     const mediaData = {
         id: mediaRef.key,
         url: url,
-        type: "image", 
-        uploadedAt: new Date().toISOString()
+        type: "image",
+        uploadedAt: firebase.database.ServerValue.TIMESTAMP // Usa timestamp do servidor
     };
-    
+
     mediaRef.set(mediaData)
         .then(() => {
             updateMediaUploadStatus("Upload concluído com sucesso!", "success");
-            setTimeout(closeMediaUploadModal, 1500);
+            // Não fecha o modal automaticamente, permitindo mais uploads se desejado
+            // O listener 'on(value)' em loadRaces() irá re-renderizar o card com a nova imagem.
+            dom.mediaForm.reset(); // Limpa o formulário para próximo upload
+            dom.mediaPreview.src = "";
+            dom.mediaPreviewContainer.style.display = 'none';
+            dom.btnConfirmMediaUpload.disabled = false; // Reabilita botão
         })
         .catch(err => {
             console.error("Erro ao salvar no Firebase:", err);
@@ -1109,41 +1235,215 @@ function saveMediaUrlToFirebase(raceId, url) {
 
 function updateMediaUploadStatus(message, type) {
     dom.mediaUploadStatus.textContent = message;
-    dom.mediaUploadStatus.className = 'upload-status'; 
+    dom.mediaUploadStatus.className = 'upload-status';
     if (type) {
-        dom.mediaUploadStatus.classList.add(type); 
+        dom.mediaUploadStatus.classList.add(type);
     }
 }
 
+// ======================================================
+// SEÇÃO V5: LÓGICA DE EDIÇÃO DE PERFIL
+// ======================================================
+
+function openProfileEditModal() {
+    if (!authUser || authUser.uid !== currentViewingUid) return; // Segurança extra
+
+    populateProfileEditModal();
+    dom.profileEditModal.showModal();
+}
+
+function closeProfileEditModal() {
+    dom.profileEditModal.close();
+}
+
+// Preenche o modal de edição com os dados atuais do db.profile
+function populateProfileEditModal() {
+    const profile = db.profile || {};
+
+    // Nomes (não editáveis aqui, mas exibidos)
+    dom.profileEditRunner1Name.textContent = profile.runner1Name || 'Corredor 1';
+    if (profile.runner2Name && profile.runner2Name.trim() !== "") {
+        dom.profileEditRunner2Name.textContent = profile.runner2Name;
+        dom.profileEditRunner2NameSeparator.style.display = '';
+        dom.profileEditRunner2Name.style.display = '';
+    } else {
+        dom.profileEditRunner2Name.textContent = '';
+        dom.profileEditRunner2NameSeparator.style.display = 'none';
+        dom.profileEditRunner2Name.style.display = 'none';
+    }
+
+    // Campos editáveis
+    dom.profileEditTeam.value = profile.teamName || '';
+    dom.profileEditBio.value = profile.bio || '';
+    dom.profileEditLocation.value = profile.location || '';
+    dom.profileEditBirthdate.value = profile.birthdate || ''; // Formato YYYY-MM-DD
+
+    // Foto de Perfil Preview
+    if (profile.profilePictureUrl) {
+        dom.profileEditPicturePreview.src = profile.profilePictureUrl;
+        dom.profileEditPicturePreviewContainer.style.display = 'block';
+    } else {
+        dom.profileEditPicturePreview.src = '';
+        dom.profileEditPicturePreviewContainer.style.display = 'none';
+    }
+
+    // Limpa status e input de arquivo
+    dom.profileEditPictureInput.value = ''; // Reseta seleção de arquivo
+    dom.profilePictureUploadStatus.textContent = '';
+    dom.profilePictureUploadStatus.className = 'upload-status';
+    dom.btnSaveProfileEdit.disabled = false;
+}
+
+
+// Mostra preview da nova foto de perfil selecionada
+function handleProfilePictureSelect(e) {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            dom.profileEditPicturePreview.src = event.target.result;
+            dom.profileEditPicturePreviewContainer.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+        dom.profilePictureUploadStatus.textContent = ''; // Limpa status
+    } else {
+         // Se cancelou ou selecionou arquivo inválido, volta para a foto atual (se houver)
+         dom.profileEditPicturePreview.src = db.profile?.profilePictureUrl || '';
+         dom.profileEditPicturePreviewContainer.style.display = db.profile?.profilePictureUrl ? 'block' : 'none';
+         if (file) { // Mostra erro se arquivo inválido
+             updateProfilePictureUploadStatus("Selecione um arquivo de imagem.", "error");
+         }
+    }
+}
+
+
+// Processa o salvamento do perfil (texto e/ou foto)
+function handleProfileEditSubmit(e) {
+    e.preventDefault();
+    if (!authUser || authUser.uid !== currentViewingUid) return;
+
+    dom.btnSaveProfileEdit.disabled = true; // Desabilita botão durante salvamento
+
+    const newProfileData = {
+        // Nomes não são editados aqui, então pegamos do estado atual 'db.profile'
+        runner1Name: db.profile.runner1Name || '',
+        runner2Name: db.profile.runner2Name || '',
+        // Campos editáveis
+        teamName: dom.profileEditTeam.value.trim() || 'Equipe', // Valor padrão se vazio
+        bio: dom.profileEditBio.value.trim() || null, // Salva null se vazio
+        location: dom.profileEditLocation.value.trim() || null,
+        birthdate: dom.profileEditBirthdate.value || null, // Salva null se vazio
+        // Foto de perfil será atualizada separadamente se houver upload
+        profilePictureUrl: db.profile.profilePictureUrl || null
+    };
+
+    const file = dom.profileEditPictureInput.files[0];
+
+    // Função para salvar os dados de texto no Firebase
+    const saveTextData = () => {
+        updateProfilePictureUploadStatus("Salvando dados...", "loading"); // Reusa o status
+
+        const updates = {};
+        updates[`/users/${authUser.uid}/profile`] = newProfileData;
+        updates[`/publicProfiles/${authUser.uid}`] = newProfileData; // Mantém sincronizado
+
+        return firebase.database().ref().update(updates)
+            .then(() => {
+                db.profile = { ...db.profile, ...newProfileData }; // Atualiza estado local
+                updateProfilePictureUploadStatus("Perfil atualizado!", "success");
+                setTimeout(closeProfileEditModal, 1500); // Fecha após sucesso
+                renderAllV1Profile(); // Re-renderiza UI com novos dados
+            })
+            .catch(err => {
+                console.error("Erro ao salvar perfil:", err);
+                updateProfilePictureUploadStatus(`Erro ao salvar: ${err.message}`, "error");
+                dom.btnSaveProfileEdit.disabled = false; // Reabilita em caso de erro
+            });
+    };
+
+    // Verifica se uma nova foto foi selecionada
+    if (file && file.type.startsWith('image/')) {
+        // Se sim, primeiro faz upload da foto
+        uploadProfilePicture(file, (newUrl) => {
+            // Se upload deu certo, atualiza a URL e salva tudo
+            if (newUrl) {
+                newProfileData.profilePictureUrl = newUrl;
+                saveTextData();
+            } else {
+                // Se upload falhou, reabilita o botão e não salva
+                dom.btnSaveProfileEdit.disabled = false;
+            }
+        });
+    } else {
+        // Se não, apenas salva os dados de texto
+        saveTextData();
+    }
+}
+
+// Função para fazer upload da foto de perfil para Cloudinary
+function uploadProfilePicture(file, callback) {
+    updateProfilePictureUploadStatus("Enviando foto...", "loading");
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+
+    fetch(CLOUDINARY_URL, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.secure_url) {
+            throw new Error(data.error?.message || "Resposta inválida do Cloudinary (sem secure_url).");
+        }
+        updateProfilePictureUploadStatus("Foto enviada!", "loading"); // Status intermediário
+        callback(data.secure_url); // Retorna a URL para quem chamou
+    })
+    .catch(err => {
+        console.error("Erro no upload da foto de perfil:", err);
+        updateProfilePictureUploadStatus(`Erro no upload: ${err.message}`, "error");
+        callback(null); // Retorna null em caso de erro
+    });
+}
+
+function updateProfilePictureUploadStatus(message, type) {
+    dom.profilePictureUploadStatus.textContent = message;
+    dom.profilePictureUploadStatus.className = 'upload-status';
+    if (type) {
+        dom.profilePictureUploadStatus.classList.add(type);
+    }
+}
 
 // ======================================================
 // PONTO DE ENTRADA PRINCIPAL (DOM LOADED)
 // ======================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // VERIFICAÇÃO CRÍTICA (V1 - Firebase)
-    if (typeof FIREBASE_CONFIG === 'undefined') {
-        alert("ERRO DE CONFIGURAÇÃO: O objeto FIREBASE_CONFIG não foi carregado. Verifique o 'js/config.js'.");
+    // VERIFICAÇÃO CRÍTICA (Firebase)
+    if (typeof FIREBASE_CONFIG === 'undefined' || !FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey === "COLE_AQUI_SUA_API_KEY") {
+        alert("ERRO DE CONFIGURAÇÃO: O objeto FIREBASE_CONFIG não foi carregado ou preenchido. Verifique o 'js/config.js'.");
         document.body.innerHTML = '<h1 style="color:red; text-align:center; padding: 50px;">ERRO: O Firebase não foi configurado corretamente.</h1>';
         return;
     }
 
-    // Inicializa o Firebase
+    // Inicializa Firebase
     firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
     database = firebase.database();
     auth = firebase.auth();
-    
-    // VERIFICAÇÃO CRÍTICA (V4 - Cloudinary)
-    if (typeof CLOUDINARY_CLOUD_NAME === 'undefined' || typeof CLOUDINARY_UPLOAD_PRESET === 'undefined' || !CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === "COLE_AQUI_SEU_CLOUD_NAME") {
-         alert("ERRO DE CONFIGURAÇÃO: As variáveis CLOUDINARY_CLOUD_NAME ou CLOUDINARY_UPLOAD_PRESET não foram configuradas. Verifique o 'js/config.js'.");
-         return;
+
+    // VERIFICAÇÃO CRÍTICA (Cloudinary)
+    if (typeof CLOUDINARY_CLOUD_NAME === 'undefined' || typeof CLOUDINARY_UPLOAD_PRESET === 'undefined' || !CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === "COLE_AQUI_SEU_CLOUD_NAME" || !CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_UPLOAD_PRESET === "COLE_AQUI_SEU_UPLOAD_PRESET") {
+         alert("ERRO DE CONFIGURAÇÃO: CLOUDINARY_CLOUD_NAME ou CLOUDINARY_UPLOAD_PRESET não foram configurados. Verifique o 'js/config.js'.");
+         return; // Interrompe execução se Cloudinary não estiver configurado
     }
-    // Define as variáveis globais de URL
     CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
     CLOUDINARY_PRESET = CLOUDINARY_UPLOAD_PRESET;
 
 
-    // Listeners do Modal V1 (Corrida Pessoal)
+    // --- LISTENERS ---
+
+    // Modal Corrida (V1)
     dom.btnAddnew.addEventListener('click', () => openModal());
     dom.btnCloseModal.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
     dom.btnCancel.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
@@ -1152,8 +1452,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = document.getElementById('race-id').value;
         if(id) deleteRace(id);
     });
-    
-    // Listeners de Autenticação V1
+
+    // Autenticação (V1)
     dom.btnLoginSubmit.addEventListener('click', handleSignIn);
     dom.btnSignUpSubmit.addEventListener('click', handleSignUp);
     dom.btnLogout.addEventListener('click', signOut);
@@ -1162,70 +1462,73 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSigningUp = dom.signupFields.classList.contains('hidden');
         toggleLoginMode(isSigningUp);
     });
-    
     dom.btnBackToMyDashboard.addEventListener('click', () => {
         if (authUser) {
             dom.btnBackToMyDashboard.classList.add('hidden');
-            showUserDashboard(authUser); 
+            showUserDashboard(authUser); // Recarrega o próprio dashboard
         }
     });
-    
-    // Listeners V4 (Modal de Mídia)
+
+    // Modal Mídia (V4)
     dom.btnCloseMediaModal.addEventListener('click', (e) => { e.preventDefault(); closeMediaUploadModal(); });
     dom.btnCancelMediaUpload.addEventListener('click', (e) => { e.preventDefault(); closeMediaUploadModal(); });
     dom.mediaFileInput.addEventListener('change', handleMediaFileSelect);
     dom.mediaForm.addEventListener('submit', handleMediaUploadSubmit);
 
-    toggleLoginMode(false); 
+    // Modal Edição Perfil (V5)
+    dom.btnEditProfile.addEventListener('click', openProfileEditModal);
+    dom.btnCloseProfileEditModal.addEventListener('click', (e) => { e.preventDefault(); closeProfileEditModal(); });
+    dom.btnCancelProfileEdit.addEventListener('click', (e) => { e.preventDefault(); closeProfileEditModal(); });
+    dom.profileEditPictureInput.addEventListener('change', handleProfilePictureSelect);
+    dom.profileEditForm.addEventListener('submit', handleProfileEditSubmit);
 
-    // Listeners do Modal V2 (Resultados Públicos)
+    // Modal Resultados (V2)
     dom.modalSearchInput.addEventListener('keyup', filterResultsInModal);
     dom.btnCloseResultsModal.addEventListener('click', closeResultsModal);
     dom.modalOverlay.addEventListener('click', (e) => {
-        if (e.target === dom.modalOverlay) {
+        // Fecha modal V2 se clicar fora do conteúdo
+        if (e.target === dom.modalOverlay && !dom.modalOverlay.classList.contains('hidden')) {
             closeResultsModal();
         }
     });
 
-    // Gerenciador Central de Estado de Autenticação (ROTEADOR V4)
+    // Estado inicial
+    toggleLoginMode(false);
+
+    // --- ROTEADOR PRINCIPAL (Auth State Changed) ---
     auth.onAuthStateChanged((user) => {
         if (user) {
             // --- USUÁRIO LOGADO ---
             authUser = user;
-            // Verifica se o UID é o admin
             firebase.database().ref('/admins/' + user.uid).once('value', (adminSnapshot) => {
                 isAdmin = adminSnapshot.exists() && adminSnapshot.val() === true;
-                
-                // ROTEAMENTO DE 3 ETAPAS
-                // 1. O usuário está aprovado (existe em /users)?
+
                 firebase.database().ref('/users/' + user.uid).once('value', (userSnapshot) => {
                     if (userSnapshot.exists() || isAdmin) {
                         showUserDashboard(user);
                     } else {
-                        // 2. Ele está na lista de pendentes?
                         firebase.database().ref('/pendingApprovals/' + user.uid).once('value', (pendingSnapshot) => {
                             if (pendingSnapshot.exists()) {
-                                showPendingView(); 
+                                showPendingView();
                             } else {
-                                // 3. Ele foi RECUSADO ou EXCLUÍDO.
                                 showRejectedView(user.email);
                             }
                         }, (error) => {
                             if(error.code === "PERMISSION_DENIED") {
-                                console.error("ERRO DE REGRAS: O usuário não-admin não tem permissão para ler /pendingApprovals.");
-                                showLoggedOutView(); 
-                                alert("Erro de configuração do banco de dados. Contate o administrador.");
-                                auth.signOut();
+                                console.error("ERRO DE REGRAS: Verifique se não-admins podem ler seu próprio nó em /pendingApprovals (se necessário).");
+                                signOut(); // Força logout em caso de erro crítico de regras
+                                alert("Erro de configuração. Contate o administrador.");
+                            } else {
+                                console.error("Erro ao verificar pendingApprovals:", error);
+                                signOut(); // Força logout
                             }
                         });
                     }
                 });
             });
-
-
         } else {
-            // --- USUÁRIO ANÔNIMO (LOGGED OUT) ---
+            // --- USUÁRIO DESLOGADO ---
             showLoggedOutView();
         }
     });
-});
+}); // Fim DOMContentLoaded
