@@ -1,24 +1,24 @@
 // =================================================================
-// ARQUIVO DE LÓGICA PRINCIPAL (V5 - Perfis Detalhados)
+// ARQUIVO DE LÓGICA PRINCIPAL (V6 - Sistema de Likes)
 // =================================================================
 
 // --- Variáveis Globais do App ---
 let db = {
-    races: {},
-    profile: {}
+    races: {}, // Dados das corridas do usuário visualizado
+    profile: {} // Dados do perfil do usuário visualizado
 };
-// Estado da Aplicação V2 (para calendário)
+// Estado da Aplicação V2 (para calendário público)
 let appState = {
     rankingData: {},
     resultadosEtapas: {},
-    allCorridas: {}
+    allCorridas: {} // Corridas dos calendários públicos (copaAlcer, geral)
 };
 
-let firebaseApp, database, auth;
-let authUser = null;
-let currentViewingUid = null;
+let firebaseApp, database, auth, functions; // Adicionado functions para transações
+let authUser = null; // Usuário autenticado (ou null)
+let currentViewingUid = null; // UID do perfil sendo visualizado atualmente
 let isAdmin = false;
-let hasRunner2 = false;
+let hasRunner2 = false; // Flag para perfil com 2 corredores
 
 // V4/V5 - Constantes de Configuração (serão preenchidas no DOMContentLoaded)
 let CLOUDINARY_URL = "";
@@ -27,6 +27,7 @@ let CLOUDINARY_PRESET = "";
 const RUNNER_1_KEY = "runner1";
 const RUNNER_2_KEY = "runner2";
 
+// Perfis padrão, serão sobrescritos pelos dados do Firebase
 let RUNNER_1_PROFILE = { name: 'Corredor 1', nameShort: 'Corredor 1', emoji: '🏃‍♂️' };
 let RUNNER_2_PROFILE = { name: 'Corredora 2', nameShort: 'Corredora 2', emoji: '🏃‍♀️' };
 
@@ -368,7 +369,8 @@ function createRaceCard(race) {
     if (runner1Data.status === 'skipped' && (!runner2Data || runner2Data.status === 'skipped')) cardStatus = 'skipped';
 
     card.className = `race-card status-${cardStatus}`;
-    card.dataset.id = race.id;
+    card.dataset.id = race.id; // ID da corrida
+    card.dataset.ownerUid = currentViewingUid; // V6 - UID do dono da corrida
 
     const runner1Dist = runner1Data.distance || race.distance;
     const runner1Pace = calculatePace(runner1Data.status === 'completed' ? runner1Data.time : runner1Data.goalTime, runner1Dist);
@@ -394,7 +396,7 @@ function createRaceCard(race) {
     let mediaHTML = '';
     if (race.media) {
         const mediaItems = Object.values(race.media);
-        if (mediaItems.length > 0) { // Só mostra se houver mídia
+        if (mediaItems.length > 0) {
             mediaHTML = `
             <div class="race-card-media">
                 <h4>Mídia da Corrida (${mediaItems.length})</h4>
@@ -413,6 +415,22 @@ function createRaceCard(race) {
         mediaButtonHTML = `<button class="btn-control btn-add-media" data-race-id="${race.id}" title="Adicionar Mídia">📸</button>`;
     }
 
+    // V6 - Seção de Likes
+    const likeCount = race.likeCount || 0;
+    const userLiked = authUser && race.likes && race.likes[authUser.uid];
+    const likeButtonClass = userLiked ? 'like-button liked' : 'like-button';
+    const likeIconClass = userLiked ? 'bxs-heart' : 'bx-heart'; // Boxicons solid vs regular
+    const socialSectionHTML = `
+        <div class="race-card-social">
+            <button class="${likeButtonClass}" data-race-id="${race.id}" data-owner-uid="${currentViewingUid}" aria-label="Curtir">
+                <i class='bx ${likeIconClass}'></i>
+            </button>
+            <span class="like-count">${likeCount}</span>
+            
+        </div>
+    `;
+
+
     card.innerHTML = `
         <div class="race-card-header">
             <h3>${race.raceName}</h3>
@@ -423,6 +441,7 @@ function createRaceCard(race) {
             ${(hasRunner2 && runner2Data) ? createRunnerInfoHTML(RUNNER_2_PROFILE, runner2Data, runner2Dist, runner2Pace, 'runner2') : ''}
         </div>
         ${mediaHTML}
+        ${socialSectionHTML} 
         <div class="race-card-footer">
             <div>
                 <span class="juntos-icon">${(hasRunner2 && race.juntos) ? '👩🏻‍❤️‍👨🏻' : ''}</span>
@@ -438,12 +457,13 @@ function createRaceCard(race) {
             </div>
         </div>`;
 
+    // --- Adiciona Listeners ---
     if(canEdit) {
-        card.querySelector('.btn-edit').addEventListener('click', (e) => {
+        card.querySelector('.btn-edit')?.addEventListener('click', (e) => { // Optional chaining
             e.stopPropagation();
             openModal(race.id);
         });
-        card.querySelector('.btn-delete').addEventListener('click', (e) => {
+        card.querySelector('.btn-delete')?.addEventListener('click', (e) => {
             e.stopPropagation();
             deleteRace(race.id);
         });
@@ -455,6 +475,15 @@ function createRaceCard(race) {
                 openMediaUploadModal(e.currentTarget.dataset.raceId);
             });
         }
+    }
+
+    // V6 - Listener do Botão de Like (adicionado independentemente de 'canEdit')
+    const likeBtn = card.querySelector('.like-button');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evita outros cliques no card
+            toggleLike(e.currentTarget); // Passa o próprio botão para a função
+        });
     }
 
     return card;
@@ -570,9 +599,17 @@ function handleFormSubmit(e) {
         } : null // Ou define como null se não houver R2 no perfil
     };
 
-    if (id && db.races[id] && db.races[id].media) {
-        raceData.media = db.races[id].media;
+    // Preserva mídia e likes existentes se estiver editando
+    if (id && db.races[id]) {
+        if (db.races[id].media) { raceData.media = db.races[id].media; }
+        if (db.races[id].likes) { raceData.likes = db.races[id].likes; } // V6
+        if (db.races[id].likeCount) { raceData.likeCount = db.races[id].likeCount; } // V6
+    } else {
+        // V6 - Inicializa likes para novas corridas
+        raceData.likes = {};
+        raceData.likeCount = 0;
     }
+
 
     const dbPath = `/users/${currentViewingUid}/races/`;
 
@@ -946,7 +983,6 @@ function fetchAllData() {
 
     dbRef.ref('corridas').on('value', snapshot => {
         appState.allCorridas = snapshot.val() || { copaAlcer: {}, geral: {} };
-        // console.log("Calendário V2 (Corridas) carregado:", appState.allCorridas);
         renderContentV2();
     }, error => {
         console.error("Falha ao carregar o nó /corridas:", error);
@@ -954,7 +990,6 @@ function fetchAllData() {
 
     dbRef.ref('resultadosEtapas').on('value', snapshot => {
         appState.resultadosEtapas = snapshot.val() || {};
-        // console.log("Calendário V2 (Resultados) carregado:", appState.resultadosEtapas);
         renderContentV2();
     }, error => {
         console.error("Falha ao carregar o nó /resultadosEtapas:", error);
@@ -963,7 +998,6 @@ function fetchAllData() {
     // Ranking não precisa de listener em tempo real geralmente
     dbRef.ref('rankingCopaAlcer').once('value', snapshot => {
         appState.rankingData = snapshot.val() || {};
-        // console.log("Calendário V2 (Ranking) carregado:", appState.rankingData);
     });
 }
 
@@ -974,20 +1008,18 @@ function renderContentV2() {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
-    // Ajuste na comparação de datas para incluir o dia de hoje nas corridas agendadas
     const corridasAgendadasCopa = todasCorridasCopa.filter(c => new Date(c.data + 'T00:00:00') >= hoje);
     const corridasAgendadasGerais = todasCorridasGerais.filter(c => new Date(c.data + 'T00:00:00') >= hoje);
-    // Corridas realizadas são as que a data é estritamente menor que hoje
     const corridasRealizadas = [...todasCorridasCopa, ...todasCorridasGerais]
                                 .filter(c => new Date(c.data + 'T00:00:00') < hoje);
 
 
     renderCalendar(corridasAgendadasCopa, dom.copaContainerPublic, 'inscrições');
-    renderCalendar(corridasAgendadasGerais, dom.geralContainerPublic, 'inscrições'); // Corrigido para gerais agendadas
+    renderCalendar(corridasAgendadasGerais, dom.geralContainerPublic, 'inscrições');
     renderCalendar(corridasRealizadas, dom.resultadosContainerPublic, 'resultados');
 
     renderCalendar(corridasAgendadasCopa, dom.copaContainerLogged, 'inscrições');
-    renderCalendar(corridasAgendadasGerais, dom.geralContainerLogged, 'inscrições'); // Corrigido para gerais agendadas
+    renderCalendar(corridasAgendadasGerais, dom.geralContainerLogged, 'inscrições');
     renderCalendar(corridasRealizadas, dom.resultadosContainerLogged, 'resultados');
 }
 
@@ -999,14 +1031,13 @@ function renderCalendar(corridas, container, buttonType) {
     }
 
     const sortedCorridas = corridas.sort((a, b) => {
-        // Ordena por data (mais recente primeiro para resultados, mais próxima primeiro para agendadas)
         const dateA = new Date(a.data + 'T00:00:00');
         const dateB = new Date(b.data + 'T00:00:00');
         return buttonType === 'resultados' ? dateB - dateA : dateA - dateB;
     });
 
     container.innerHTML = sortedCorridas.map(corrida => {
-        const dataObj = new Date(`${corrida.data}T12:00:00Z`); // Usar UTC para evitar problemas de fuso
+        const dataObj = new Date(`${corrida.data}T12:00:00Z`);
         const dia = String(dataObj.getUTCDate()).padStart(2, '0');
         const mes = dataObj.toLocaleString("pt-BR", { month: "short", timeZone: 'UTC' }).replace(".", "").toUpperCase();
 
@@ -1059,7 +1090,6 @@ function showRaceResultsModal(raceId) {
     dom.modalTitleResults.textContent = `Resultados - ${race.nome}`;
 
     let contentHTML = '';
-    // Itera sobre as chaves (distâncias/categorias) e depois gêneros
     for (const categoryKey in results) {
         if (results.hasOwnProperty(categoryKey)) {
              for (const genderKey in results[categoryKey]) {
@@ -1091,7 +1121,7 @@ function showRaceResultsModal(raceId) {
 
     dom.modalContentResults.innerHTML = contentHTML || '<p>Nenhum resultado encontrado nesta categoria.</p>';
     dom.modalSearchInput.value = '';
-    filterResultsInModal(); // Aplica filtro inicial (mostrar tudo)
+    filterResultsInModal();
     dom.modalOverlay.classList.remove('hidden');
 }
 
@@ -1137,7 +1167,7 @@ function closeMediaUploadModal() {
 
 function handleMediaFileSelect(e) {
     const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) { // Valida se é imagem
+    if (file && file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = function(event) {
             dom.mediaPreview.src = event.target.result;
@@ -1150,7 +1180,7 @@ function handleMediaFileSelect(e) {
     } else {
         dom.mediaPreview.src = "";
         dom.mediaPreviewContainer.style.display = 'none';
-        if (file) { // Se um arquivo foi selecionado mas não é imagem
+        if (file) {
              updateMediaUploadStatus("Por favor, selecione um arquivo de imagem.", "error");
         }
     }
@@ -1182,9 +1212,9 @@ function handleMediaUploadSubmit(e) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json()) // Lê a resposta JSON independentemente do status
+    .then(response => response.json())
     .then(data => {
-        if (!data.secure_url) { // Verifica se a URL esperada existe na resposta
+        if (!data.secure_url) {
             console.error("Resposta inesperada do Cloudinary:", data);
             throw new Error(data.error?.message || "Resposta inválida do Cloudinary (sem secure_url).");
         }
@@ -1200,7 +1230,7 @@ function handleMediaUploadSubmit(e) {
 
 
 function saveMediaUrlToFirebase(raceId, url) {
-    const uid = authUser?.uid; // Usa optional chaining
+    const uid = authUser?.uid;
     if (!uid) {
          updateMediaUploadStatus("Erro: Usuário não autenticado.", "error");
          dom.btnConfirmMediaUpload.disabled = false;
@@ -1213,18 +1243,16 @@ function saveMediaUrlToFirebase(raceId, url) {
         id: mediaRef.key,
         url: url,
         type: "image",
-        uploadedAt: firebase.database.ServerValue.TIMESTAMP // Usa timestamp do servidor
+        uploadedAt: firebase.database.ServerValue.TIMESTAMP
     };
 
     mediaRef.set(mediaData)
         .then(() => {
             updateMediaUploadStatus("Upload concluído com sucesso!", "success");
-            // Não fecha o modal automaticamente, permitindo mais uploads se desejado
-            // O listener 'on(value)' em loadRaces() irá re-renderizar o card com a nova imagem.
-            dom.mediaForm.reset(); // Limpa o formulário para próximo upload
+            dom.mediaForm.reset();
             dom.mediaPreview.src = "";
             dom.mediaPreviewContainer.style.display = 'none';
-            dom.btnConfirmMediaUpload.disabled = false; // Reabilita botão
+            dom.btnConfirmMediaUpload.disabled = false;
         })
         .catch(err => {
             console.error("Erro ao salvar no Firebase:", err);
@@ -1246,7 +1274,7 @@ function updateMediaUploadStatus(message, type) {
 // ======================================================
 
 function openProfileEditModal() {
-    if (!authUser || authUser.uid !== currentViewingUid) return; // Segurança extra
+    if (!authUser || authUser.uid !== currentViewingUid) return;
 
     populateProfileEditModal();
     dom.profileEditModal.showModal();
@@ -1256,11 +1284,9 @@ function closeProfileEditModal() {
     dom.profileEditModal.close();
 }
 
-// Preenche o modal de edição com os dados atuais do db.profile
 function populateProfileEditModal() {
     const profile = db.profile || {};
 
-    // Nomes (não editáveis aqui, mas exibidos)
     dom.profileEditRunner1Name.textContent = profile.runner1Name || 'Corredor 1';
     if (profile.runner2Name && profile.runner2Name.trim() !== "") {
         dom.profileEditRunner2Name.textContent = profile.runner2Name;
@@ -1272,13 +1298,11 @@ function populateProfileEditModal() {
         dom.profileEditRunner2Name.style.display = 'none';
     }
 
-    // Campos editáveis
     dom.profileEditTeam.value = profile.teamName || '';
     dom.profileEditBio.value = profile.bio || '';
     dom.profileEditLocation.value = profile.location || '';
-    dom.profileEditBirthdate.value = profile.birthdate || ''; // Formato YYYY-MM-DD
+    dom.profileEditBirthdate.value = profile.birthdate || '';
 
-    // Foto de Perfil Preview
     if (profile.profilePictureUrl) {
         dom.profileEditPicturePreview.src = profile.profilePictureUrl;
         dom.profileEditPicturePreviewContainer.style.display = 'block';
@@ -1287,15 +1311,13 @@ function populateProfileEditModal() {
         dom.profileEditPicturePreviewContainer.style.display = 'none';
     }
 
-    // Limpa status e input de arquivo
-    dom.profileEditPictureInput.value = ''; // Reseta seleção de arquivo
+    dom.profileEditPictureInput.value = '';
     dom.profilePictureUploadStatus.textContent = '';
     dom.profilePictureUploadStatus.className = 'upload-status';
     dom.btnSaveProfileEdit.disabled = false;
 }
 
 
-// Mostra preview da nova foto de perfil selecionada
 function handleProfilePictureSelect(e) {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
@@ -1305,82 +1327,70 @@ function handleProfilePictureSelect(e) {
             dom.profileEditPicturePreviewContainer.style.display = 'block';
         }
         reader.readAsDataURL(file);
-        dom.profilePictureUploadStatus.textContent = ''; // Limpa status
+        dom.profilePictureUploadStatus.textContent = '';
     } else {
-         // Se cancelou ou selecionou arquivo inválido, volta para a foto atual (se houver)
          dom.profileEditPicturePreview.src = db.profile?.profilePictureUrl || '';
          dom.profileEditPicturePreviewContainer.style.display = db.profile?.profilePictureUrl ? 'block' : 'none';
-         if (file) { // Mostra erro se arquivo inválido
+         if (file) {
              updateProfilePictureUploadStatus("Selecione um arquivo de imagem.", "error");
          }
     }
 }
 
 
-// Processa o salvamento do perfil (texto e/ou foto)
 function handleProfileEditSubmit(e) {
     e.preventDefault();
     if (!authUser || authUser.uid !== currentViewingUid) return;
 
-    dom.btnSaveProfileEdit.disabled = true; // Desabilita botão durante salvamento
+    dom.btnSaveProfileEdit.disabled = true;
 
     const newProfileData = {
-        // Nomes não são editados aqui, então pegamos do estado atual 'db.profile'
         runner1Name: db.profile.runner1Name || '',
         runner2Name: db.profile.runner2Name || '',
-        // Campos editáveis
-        teamName: dom.profileEditTeam.value.trim() || 'Equipe', // Valor padrão se vazio
-        bio: dom.profileEditBio.value.trim() || null, // Salva null se vazio
+        teamName: dom.profileEditTeam.value.trim() || 'Equipe',
+        bio: dom.profileEditBio.value.trim() || null,
         location: dom.profileEditLocation.value.trim() || null,
-        birthdate: dom.profileEditBirthdate.value || null, // Salva null se vazio
-        // Foto de perfil será atualizada separadamente se houver upload
+        birthdate: dom.profileEditBirthdate.value || null,
         profilePictureUrl: db.profile.profilePictureUrl || null
     };
 
     const file = dom.profileEditPictureInput.files[0];
 
-    // Função para salvar os dados de texto no Firebase
     const saveTextData = () => {
-        updateProfilePictureUploadStatus("Salvando dados...", "loading"); // Reusa o status
+        updateProfilePictureUploadStatus("Salvando dados...", "loading");
 
         const updates = {};
         updates[`/users/${authUser.uid}/profile`] = newProfileData;
-        updates[`/publicProfiles/${authUser.uid}`] = newProfileData; // Mantém sincronizado
+        updates[`/publicProfiles/${authUser.uid}`] = newProfileData;
 
         return firebase.database().ref().update(updates)
             .then(() => {
-                db.profile = { ...db.profile, ...newProfileData }; // Atualiza estado local
+                db.profile = { ...db.profile, ...newProfileData };
                 updateProfilePictureUploadStatus("Perfil atualizado!", "success");
-                setTimeout(closeProfileEditModal, 1500); // Fecha após sucesso
-                renderAllV1Profile(); // Re-renderiza UI com novos dados
+                setTimeout(closeProfileEditModal, 1500);
+                renderAllV1Profile(); // Re-renderiza header e outras partes da UI
             })
             .catch(err => {
                 console.error("Erro ao salvar perfil:", err);
                 updateProfilePictureUploadStatus(`Erro ao salvar: ${err.message}`, "error");
-                dom.btnSaveProfileEdit.disabled = false; // Reabilita em caso de erro
+                dom.btnSaveProfileEdit.disabled = false;
             });
     };
 
-    // Verifica se uma nova foto foi selecionada
     if (file && file.type.startsWith('image/')) {
-        // Se sim, primeiro faz upload da foto
         uploadProfilePicture(file, (newUrl) => {
-            // Se upload deu certo, atualiza a URL e salva tudo
             if (newUrl) {
                 newProfileData.profilePictureUrl = newUrl;
                 saveTextData();
             } else {
-                // Se upload falhou, reabilita o botão e não salva
                 dom.btnSaveProfileEdit.disabled = false;
             }
         });
     } else {
-        // Se não, apenas salva os dados de texto
         saveTextData();
     }
 }
 
-// Função para fazer upload da foto de perfil para Cloudinary
 function uploadProfilePicture(file, callback) {
     updateProfilePictureUploadStatus("Enviando foto...", "loading");
 
@@ -1397,13 +1407,13 @@ function uploadProfilePicture(file, callback) {
         if (!data.secure_url) {
             throw new Error(data.error?.message || "Resposta inválida do Cloudinary (sem secure_url).");
         }
-        updateProfilePictureUploadStatus("Foto enviada!", "loading"); // Status intermediário
-        callback(data.secure_url); // Retorna a URL para quem chamou
+        updateProfilePictureUploadStatus("Foto enviada!", "loading");
+        callback(data.secure_url);
     })
     .catch(err => {
         console.error("Erro no upload da foto de perfil:", err);
         updateProfilePictureUploadStatus(`Erro no upload: ${err.message}`, "error");
-        callback(null); // Retorna null em caso de erro
+        callback(null);
     });
 }
 
@@ -1414,6 +1424,96 @@ function updateProfilePictureUploadStatus(message, type) {
         dom.profilePictureUploadStatus.classList.add(type);
     }
 }
+
+// ======================================================
+// SEÇÃO V6: LÓGICA DE CURTIDAS (LIKES)
+// ======================================================
+
+// Função chamada ao clicar no botão de like
+function toggleLike(likeButtonElement) {
+    if (!authUser) {
+        alert("Você precisa estar logado para curtir.");
+        return;
+    }
+
+    const raceId = likeButtonElement.dataset.raceId;
+    const ownerUid = likeButtonElement.dataset.ownerUid;
+    const currentUserUid = authUser.uid;
+
+    if (!raceId || !ownerUid) {
+        console.error("Faltando data attributes no botão de like:", likeButtonElement);
+        return;
+    }
+
+    // Referência para a corrida específica no banco de dados
+    const raceRef = firebase.database().ref(`/users/${ownerUid}/races/${raceId}`);
+
+    // Executa a transação
+    raceRef.transaction(currentRaceData => {
+        if (currentRaceData === null) {
+            return null; // Corrida não existe mais? Aborta a transação.
+        }
+
+        // Inicializa likes e likeCount se não existirem
+        if (!currentRaceData.likes) {
+            currentRaceData.likes = {};
+        }
+        if (currentRaceData.likeCount === undefined || currentRaceData.likeCount === null) {
+             currentRaceData.likeCount = 0;
+        }
+
+
+        // Verifica se o usuário já curtiu
+        if (currentRaceData.likes[currentUserUid]) {
+            // Já curtiu -> Descurtir
+            currentRaceData.likeCount--;
+            currentRaceData.likes[currentUserUid] = null; // Remove a chave do usuário
+        } else {
+            // Não curtiu -> Curtir
+            currentRaceData.likeCount++;
+            currentRaceData.likes[currentUserUid] = true; // Adiciona a chave do usuário
+        }
+
+        return currentRaceData; // Retorna os dados modificados para serem salvos
+    }, (error, committed, snapshot) => {
+        if (error) {
+            console.error('Falha na transação de like:', error);
+            alert("Ocorreu um erro ao tentar curtir/descurtir. Tente novamente.");
+        } else if (committed) {
+            // Transação bem-sucedida!
+            console.log('Like/Unlike com sucesso!');
+            // Atualiza a UI localmente (o listener 'on value' em loadRaces também atualizará,
+            // mas podemos fazer uma atualização imediata para melhor feedback)
+            const updatedRaceData = snapshot.val();
+            updateLikeButtonUI(likeButtonElement, updatedRaceData.likeCount, !!updatedRaceData.likes[currentUserUid]);
+
+            // Atualiza também o estado local 'db.races' para consistência
+            if (db.races[raceId]) {
+                 db.races[raceId].likes = updatedRaceData.likes;
+                 db.races[raceId].likeCount = updatedRaceData.likeCount;
+            }
+
+        } else {
+            // Transação abortada (ex: corrida não encontrada)
+            console.log('Transação de like abortada.');
+        }
+    });
+}
+
+// Atualiza a aparência do botão de like e o contador
+function updateLikeButtonUI(buttonElement, count, liked) {
+    const iconElement = buttonElement.querySelector('i');
+    const countElement = buttonElement.nextElementSibling; // Assume que o span do contador é o próximo irmão
+
+    buttonElement.classList.toggle('liked', liked);
+    iconElement.classList.toggle('bx-heart', !liked);
+    iconElement.classList.toggle('bxs-heart', liked); // Ícone preenchido
+
+    if (countElement && countElement.classList.contains('like-count')) {
+        countElement.textContent = count;
+    }
+}
+
 
 // ======================================================
 // PONTO DE ENTRADA PRINCIPAL (DOM LOADED)
@@ -1431,6 +1531,7 @@ document.addEventListener('DOMContentLoaded', () => {
     firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
     database = firebase.database();
     auth = firebase.auth();
+    // functions = firebase.functions(); // Descomentar se usar Cloud Functions no futuro
 
     // VERIFICAÇÃO CRÍTICA (Cloudinary)
     if (typeof CLOUDINARY_CLOUD_NAME === 'undefined' || typeof CLOUDINARY_UPLOAD_PRESET === 'undefined' || !CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === "COLE_AQUI_SEU_CLOUD_NAME" || !CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_UPLOAD_PRESET === "COLE_AQUI_SEU_UPLOAD_PRESET") {
@@ -1499,21 +1600,22 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged((user) => {
         if (user) {
             // --- USUÁRIO LOGADO ---
-            authUser = user;
+            authUser = user; // Define o usuário globalmente
             firebase.database().ref('/admins/' + user.uid).once('value', (adminSnapshot) => {
                 isAdmin = adminSnapshot.exists() && adminSnapshot.val() === true;
 
                 firebase.database().ref('/users/' + user.uid).once('value', (userSnapshot) => {
                     if (userSnapshot.exists() || isAdmin) {
-                        showUserDashboard(user);
+                        showUserDashboard(user); // Mostra o dashboard (próprio ou de admin)
                     } else {
+                        // Verifica se está pendente
                         firebase.database().ref('/pendingApprovals/' + user.uid).once('value', (pendingSnapshot) => {
                             if (pendingSnapshot.exists()) {
-                                showPendingView();
+                                showPendingView(); // Mostra tela de pendente
                             } else {
-                                showRejectedView(user.email);
+                                showRejectedView(user.email); // Mostra tela de rejeitado/não encontrado
                             }
-                        }, (error) => {
+                        }, (error) => { // Trata erro ao ler pendingApprovals
                             if(error.code === "PERMISSION_DENIED") {
                                 console.error("ERRO DE REGRAS: Verifique se não-admins podem ler seu próprio nó em /pendingApprovals (se necessário).");
                                 signOut(); // Força logout em caso de erro crítico de regras
@@ -1528,7 +1630,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else {
             // --- USUÁRIO DESLOGADO ---
-            showLoggedOutView();
+            authUser = null; // Limpa usuário global
+            showLoggedOutView(); // Mostra tela de login/pública
         }
     });
 }); // Fim DOMContentLoaded
