@@ -6,7 +6,8 @@
     <title>Currículo de Corredores - thIAguinho Soluções</title>
     <link rel="stylesheet" href="css/styles.css">
     
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'> 
+    
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#667eea">
@@ -37,6 +38,7 @@
             <button class="auth-btn hidden" id="btn-edit-profile">✏️ Editar Perfil</button>
         </div>
 
+        
         <div id="admin-panel" class="hidden">
             <h2>⚙️ Painel de Admin
                 <button id="admin-toggle-btn" class="auth-btn">Ocultar</button>
@@ -212,11 +214,24 @@
             </div>
 
             <div class="history-section">
-                <h2 class="dashboard-header">Histórico Pessoal</h2> 
+                <h2 class="dashboard-header">Histórico Pessoal</h2>
                 <div id="history-container">
                     <div class="loader">Carregando histórico do Firebase...</div>
                 </div>
             </div>
+
+            
+            <div id="profile-comments-section" class="profile-comments-section">
+                <h2 class="section-title">Mural de Recados</h2>
+                <div id="profile-comments-list" class="comments-list">
+                    
+                </div>
+                <form id="profile-comment-form" class="comment-form">
+                    <textarea id="profile-comment-input" placeholder="Deixe um recado neste perfil..." required maxlength="1000"></textarea>
+                    <button type="submit" class="btn btn-primary btn-comment">Enviar Recado</button>
+                </form>
+            </div>
+
 
             <div class="public-profile-list-section">
                 <h2 class="section-title">Outros Currículos Públicos</h2>
@@ -344,10 +359,11 @@
             <div class="modal-body">
                 <p class="form-help-text">Adicione fotos da sua corrida. Elas aparecerão no seu histórico.</p>
                 <div class="form-group full-width">
-                    <label for="media-file-input">Selecionar Imagem</label>
-                    <input type="file" id="media-file-input" class="form-input-file" accept="image/*" required>
-                    <div id="media-preview-container">
-                        <img id="media-preview" src="" alt="Pré-visualização">
+                    <label for="media-file-input">Selecionar Imagens</label>
+                    
+                    <input type="file" id="media-file-input" class="form-input-file" accept="image/*" multiple required>
+                    <div id="media-preview-container" class="media-preview-grid">
+                        
                     </div>
                     <div id="media-upload-status" class="upload-status"></div>
                 </div>
@@ -366,7 +382,7 @@
                 <h2>Editar Perfil</h2>
                 <button type="button" class="btn-control" id="btn-close-profile-edit-modal" aria-label="Fechar">✖️</button>
             </div>
-            <div class="modal-body" style="grid-template-columns: 1fr;"> 
+            <div class="modal-body" style="grid-template-columns: 1fr;">
 
                 <div class="form-group">
                     <label>Nomes dos Corredores (Não editável aqui)</label>
@@ -427,11 +443,35 @@
         </div>
     </div>
 
+    
+    <dialog id="likers-modal">
+        <div class="modal-header">
+            <h2 id="likers-modal-title">Curtidas</h2>
+            <button type="button" class="btn-control" id="btn-close-likers-modal" aria-label="Fechar">✖️</button>
+        </div>
+        <div class="modal-body" id="likers-modal-list">
+            
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-likers-modal">Fechar</button>
+        </div>
+    </dialog>
+
+    
+    <div id="lightbox-overlay" class="lightbox-overlay hidden">
+        <button id="lightbox-close" class="lightbox-close-btn">&times;</button>
+        <button id="lightbox-prev" class="lightbox-nav-btn prev">&lt;</button>
+        <img id="lightbox-image" src="" alt="Imagem da Corrida">
+        <button id="lightbox-next" class="lightbox-nav-btn next">&gt;</button>
+        <div id="lightbox-caption">Foto X de Y</div>
+    </div>
+
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
 
     <script src="js/config.js"></script>
     <script src="js/admin-logic.js"></script>
