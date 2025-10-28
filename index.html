@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Currículo de Corredores - thIAguinho Soluções</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'> 
 
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#667eea"> 
+    <meta name="theme-color" content="#667eea">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
 </head>
@@ -21,24 +22,21 @@
 
             <div class="auth-controls">
                 <div id="user-info" class="hidden">
-                    
                     <span id="user-email"></span>
                 </div>
                 <button class="auth-btn hidden" id="btn-logout">Logout</button>
             </div>
 
-            
-            <div id="profile-header-info"> 
-                <img id="header-profile-picture" src="icons/icon-192x192.png" alt="Foto Perfil" class="header-profile-pic"> 
+            <div id="profile-header-info">
+                <img id="header-profile-picture" src="icons/icon-192x192.png" alt="Foto Perfil" class="header-profile-pic">
                 <h1>Currículo de Corridas de Rua 🏃🏽‍♂️🏃🏽‍♀️</h1>
                 <p id="header-subtitle">Carregando...</p>
-                <p id="header-location" class="header-sub-info"></p> 
-                <p id="header-bio" class="header-sub-info"></p> 
+                <p id="header-location" class="header-sub-info"></p>
+                <p id="header-bio" class="header-sub-info"></p>
             </div>
-            <button class="auth-btn hidden" id="btn-edit-profile">✏️ Editar Perfil</button> 
+            <button class="auth-btn hidden" id="btn-edit-profile">✏️ Editar Perfil</button>
         </div>
 
-        
         <div id="admin-panel" class="hidden">
             <h2>⚙️ Painel de Admin
                 <button id="admin-toggle-btn" class="auth-btn">Ocultar</button>
@@ -214,7 +212,7 @@
             </div>
 
             <div class="history-section">
-                <h2 class="dashboard-header">Meu Histórico Pessoal</h2>
+                <h2 class="dashboard-header">Histórico Pessoal</h2> 
                 <div id="history-container">
                     <div class="loader">Carregando histórico do Firebase...</div>
                 </div>
@@ -414,7 +412,6 @@
         </form>
     </dialog>
 
-
     
     <div id="modal-overlay" class="v2-modal-overlay hidden">
         <div id="results-modal" class="v2-modal-content">
@@ -430,10 +427,11 @@
         </div>
     </div>
 
-
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script> 
 
     <script src="js/config.js"></script>
     <script src="js/admin-logic.js"></script>
