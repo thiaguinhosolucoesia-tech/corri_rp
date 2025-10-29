@@ -1086,27 +1086,32 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 
 
 /* ================================================= */
-/* RESPONSIVIDADE (V1 + V2 + V5 + V6 + V7/8)         */
+/* RESPONSIVIDADE (V1 + V2 + V5 + V6 + V7/8 + V9.X)  */
 /* ================================================= */
 @media (max-width: 900px) {
     .admin-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
-    body { padding: 0; }
-    .container { 
-        margin: 0; 
-        border-radius: 0; 
-        border: none; 
+    body {
+        padding: 0;
+        overflow-y: auto; /* CORREÇÃO V9.X - Garante que o body possa rolar */
+        /* min-height: 100vh; */ /* Manter comentado ou remover */
+    }
+    .container {
+        margin: 0;
+        border-radius: 0;
+        border: none;
         /* min-height: 100vh; */ /* REMOVIDO V9.3 - Causava corte de conteúdo */
-        overflow: visible; /* CORRIGIDO V9.3 - Permite ao container crescer e a página rolar */
+        overflow: visible; /* CORRIGIDO V9.3 - Permite ao container crescer */
+        height: auto; /* CORREÇÃO V9.X - Garante que altura seja definida pelo conteúdo */
     }
     .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
     #login-form { max-width: 100%; }
     #btn-back-to-public, #btn-back-to-my-dashboard { top: 10px; left: 10px; padding: 6px 8px; font-size: 0.8em; }
     .header { padding: 15px; }
     .header h1 { font-size: 1.8em; }
-    .header p { font-size: 1em; }
+    /* .header p { font-size: 1em; } */ /* Comentado - pode ser redundante com .header-sub-info */
     .header-profile-pic { width: 60px; height: 60px; margin-bottom: 8px; }
     #btn-edit-profile { position: static; display: block; width: 80%; margin: 15px auto 0 auto; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
