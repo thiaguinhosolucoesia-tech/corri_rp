@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE LÓGICA PRINCIPAL (V9 - Correção Resultados + Bug Duplicação)
+// ARQUIVO DE LÓGICA PRINCIPAL (V9.1 - Add Corrida Pública + Correção Resultados/Duplicação)
 // =================================================================
 
 // --- Variáveis Globais do App ---
@@ -573,13 +573,15 @@ function createRunnerInfoHTML(config, runnerData, distance, pace, cssClass) {
     return `<div class="runner-info"><span class="runner-name ${cssClass}">${config.name} ${config.emoji}</span><div class="runner-details">${timeHTML}${paceHTML}</div></div>`;
 }
 
-// --- Funções do Modal e CRUD (V1) ---
-function openModal(raceId = null) {
+// --- Funções do Modal e CRUD (V1 - Modificada V9.1) ---
+// Modificada para aceitar dados pré-preenchidos do calendário público
+function openModal(raceId = null, prefillData = null) {
     dom.form.reset();
     document.getElementById('race-id').value = '';
     dom.btnDelete.classList.add('hidden');
-    updateProfileUI();
-    if (raceId) {
+    updateProfileUI(); // Garante que nomes/visibilidade de R2 estejam corretos
+
+    if (raceId) { // Editando corrida existente
         dom.modalTitle.textContent = 'Editar Corrida Pessoal';
         dom.btnDelete.classList.remove('hidden');
         const race = db.races[raceId];
@@ -604,9 +606,22 @@ function openModal(raceId = null) {
             document.getElementById('runner2Time').value = normalizeTime(runner2Time) ? secondsToTime(timeToSeconds(runner2Time)) : '';
             document.getElementById('runner2Distance').value = runner2Data.distance || '';
         }
-    } else {
+    } else if (prefillData) { // Adicionando corrida do calendário público
+         dom.modalTitle.textContent = 'Adicionar Corrida ao Histórico';
+         document.getElementById('raceName').value = prefillData.nome || '';
+         document.getElementById('raceDate').value = prefillData.data || new Date().toISOString().split('T')[0];
+         // Opcional: preencher distância se disponível na corrida pública
+         // document.getElementById('raceDistance').value = prefillData.distance || '';
+         // Assume como 'planejada' por padrão
+         document.getElementById('runner1Status').value = 'planned';
+         if(hasRunner2) document.getElementById('runner2Status').value = 'planned';
+    }
+     else { // Adicionando nova corrida manualmente
         dom.modalTitle.textContent = 'Adicionar Nova Corrida Pessoal';
         document.getElementById('raceDate').value = new Date().toISOString().split('T')[0];
+         // Assume como 'completa' por padrão ao adicionar manualmente
+        document.getElementById('runner1Status').value = 'completed';
+         if(hasRunner2) document.getElementById('runner2Status').value = 'completed';
     }
     dom.modal.showModal();
 }
@@ -798,7 +813,7 @@ function signOut() {
 }
 
 // ======================================================
-// SEÇÃO V2: LÓGICA DO CALENDÁRIO PÚBLICO
+// SEÇÃO V2: LÓGICA DO CALENDÁRIO PÚBLICO (Modificado V9.1)
 // ======================================================
 function fetchAllData() {
     const dbRef = firebase.database(); dbRef.ref('corridas').off(); dbRef.ref('corridas').on('value', snapshot => { appState.allCorridas = snapshot.val() || { copaAlcer: {}, geral: {} }; renderContentV2(); }, error => console.error("Falha /corridas:", error));
@@ -813,18 +828,39 @@ function renderContentV2() {
     renderCalendar(corridasAgendadasCopa, dom.copaContainerPublic, 'inscrições'); renderCalendar(corridasAgendadasGerais, dom.geralContainerPublic, 'inscrições'); renderCalendar(corridasRealizadas, dom.resultadosContainerPublic, 'resultados');
     renderCalendar(corridasAgendadasCopa, dom.copaContainerLogged, 'inscrições'); renderCalendar(corridasAgendadasGerais, dom.geralContainerLogged, 'inscrições'); renderCalendar(corridasRealizadas, dom.resultadosContainerLogged, 'resultados');
 }
+
+// Modificada para adicionar botão "Adicionar ao Histórico" (V9.1)
 function renderCalendar(corridas, container, buttonType) {
     if (!container) return; if (!corridas || corridas.length === 0) { container.innerHTML = `<p class="loader" style="font-size: 0.9em; color: #999;">Nenhuma corrida.</p>`; return; }
     const sortedCorridas = corridas.sort((a, b) => { const dateA = new Date(a.data + 'T00:00:00'); const dateB = new Date(b.data + 'T00:00:00'); return buttonType === 'resultados' ? dateB - dateA : dateA - dateB; });
     container.innerHTML = sortedCorridas.map(corrida => {
         const dataObj = new Date(`${corrida.data}T12:00:00Z`); const dia = String(dataObj.getUTCDate()).padStart(2, '0'); const mes = dataObj.toLocaleString("pt-BR", { month: "short", timeZone: 'UTC' }).replace(".", "").toUpperCase();
-        let actionButtonHTML = ''; if (buttonType === 'inscrições') { actionButtonHTML = corrida.linkInscricao ? `<a href="${corrida.linkInscricao}" target="_blank" rel="noopener noreferrer" class="v2-inscricoes-button"><i class='bx bx-link-external' style="margin-right: 5px;"></i>Inscrições</a>` : `<div class="v2-race-button-disabled">Em Breve</div>`; }
+        let actionButtonHTML = '';
+        if (buttonType === 'inscrições') { actionButtonHTML = corrida.linkInscricao ? `<a href="${corrida.linkInscricao}" target="_blank" rel="noopener noreferrer" class="v2-inscricoes-button"><i class='bx bx-link-external' style="margin-right: 5px;"></i>Inscrições</a>` : `<div class="v2-race-button-disabled">Em Breve</div>`; }
         else { actionButtonHTML = appState.resultadosEtapas[corrida.id] ? `<button class="v2-results-button" data-race-id="${corrida.id}"><i class='bx bx-table' style="margin-right: 5px;"></i>Ver Resultados</button>` : `<div class="v2-race-button-disabled">Resultados em Breve</div>`; }
-        return `<div class="v2-race-card"><div class="v2-race-date"><span class="v2-race-date-day">${dia}</span><span class="v2-race-date-month">${mes}</span></div><div class="v2-race-info"><div><h3 class="font-bold text-lg text-white">${corrida.nome}</h3><p class="text-sm text-gray-400"><i class='bx bxs-map' style="margin-right: 5px;"></i>${corrida.cidade}</p></div><div class="v2-race-buttons">${actionButtonHTML}</div></div></div>`;
-    }).join('');
-    container.querySelectorAll('.v2-results-button').forEach(button => { button.addEventListener('click', (e) => { const raceId = e.currentTarget.dataset.raceId; showRaceResultsModal(raceId); }); });
-}
 
+        // Botão Adicionar (V9.1) - Apenas se logado
+        const addRaceButtonHTML = authUser ? `<button class="v2-add-personal-button" data-race-info='${JSON.stringify({nome: corrida.nome, data: corrida.data, id: corrida.id})}'>➕ Adicionar</button>` : '';
+
+        return `<div class="v2-race-card"><div class="v2-race-date"><span class="v2-race-date-day">${dia}</span><span class="v2-race-date-month">${mes}</span></div><div class="v2-race-info"><div><h3 class="font-bold text-lg text-white">${corrida.nome}</h3><p class="text-sm text-gray-400"><i class='bx bxs-map' style="margin-right: 5px;"></i>${corrida.cidade}</p></div><div class="v2-race-buttons">${actionButtonHTML}${addRaceButtonHTML}</div></div></div>`;
+    }).join('');
+
+    // Listener para o botão de resultados (existente)
+    container.querySelectorAll('.v2-results-button').forEach(button => { button.addEventListener('click', (e) => { const raceId = e.currentTarget.dataset.raceId; showRaceResultsModal(raceId); }); });
+
+    // Listener para o novo botão "Adicionar ao Histórico" (V9.1)
+    container.querySelectorAll('.v2-add-personal-button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            if (!authUser) return; // Segurança extra
+            try {
+                const raceInfo = JSON.parse(e.currentTarget.dataset.raceInfo);
+                openModal(null, raceInfo); // Chama openModal sem ID, mas com dados para pré-preencher
+            } catch (error) {
+                console.error("Erro ao parsear dados da corrida pública:", error);
+            }
+        });
+    });
+}
 // **INÍCIO DA CORREÇÃO (BUG RESULTADOS)**
 function showRaceResultsModal(raceId) {
     const race = appState.allCorridas.copaAlcer?.[raceId] || appState.allCorridas.geral?.[raceId];
