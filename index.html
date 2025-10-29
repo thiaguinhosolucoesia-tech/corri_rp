@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Currículo de Corredores - thIAguinho Soluções</title>
     <link rel="stylesheet" href="css/styles.css">
-    
-    
+
+
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
     <link rel="manifest" href="manifest.json">
@@ -38,7 +38,7 @@
             <button class="auth-btn hidden" id="btn-edit-profile">✏️ Editar Perfil</button>
         </div>
 
-        
+
         <div id="admin-panel" class="hidden">
             <h2>⚙️ Painel de Admin
                 <button id="admin-toggle-btn" class="auth-btn">Ocultar</button>
@@ -197,6 +197,7 @@
         </div>
 
         <div id="user-content" class="hidden">
+
             <div class="dashboard-section">
                 <h2 class="dashboard-header">Dashboard de Performance</h2>
                 <h3 class="dashboard-subheader">Recordes Pessoais (PRs)</h3>
@@ -213,32 +214,32 @@
                 <button class="btn-add" id="btn-add-new">➕ Adicionar Nova Corrida Pessoal</button>
             </div>
 
-            <div class="history-section">
-                <h2 class="dashboard-header">Histórico Pessoal</h2>
-                <div id="history-container">
-                    <div class="loader">Carregando histórico do Firebase...</div>
-                </div>
-            </div>
-
-            
-            <div id="profile-comments-section" class="profile-comments-section">
-                <h2 class="section-title">Mural de Recados</h2>
-                <div id="profile-comments-list" class="comments-list">
-                    
-                </div>
-                <form id="profile-comment-form" class="comment-form">
-                    <textarea id="profile-comment-input" placeholder="Deixe um recado neste perfil..." required maxlength="1000"></textarea>
-                    <button type="submit" class="btn btn-primary btn-comment">Enviar Recado</button>
-                </form>
-            </div>
-
-
             <div class="public-profile-list-section">
                 <h2 class="section-title">Outros Currículos Públicos</h2>
                 <div class="profile-list" id="public-profile-list-logged">
                     <div class="loader">Carregando perfis públicos...</div>
                 </div>
             </div>
+
+             <div id="profile-comments-section" class="profile-comments-section">
+                <h2 class="section-title">Mural de Recados</h2>
+                <div id="profile-comments-list" class="comments-list">
+                    </div>
+                <form id="profile-comment-form" class="comment-form">
+                    <textarea id="profile-comment-input" placeholder="Deixe um recado neste perfil..." required maxlength="1000"></textarea>
+                    <button type="submit" class="btn btn-primary btn-comment">Enviar Recado</button>
+                </form>
+            </div>
+
+            <div class="history-section">
+                <div class="section-header-collapsible"> <h2 class="dashboard-header">Histórico Pessoal</h2>
+                    <button id="toggle-history-btn" class="btn-toggle-section" title="Recolher/Expandir Histórico">
+                        <i class='bx bx-chevron-up'></i> </button>
+                </div>
+                <div id="history-container" class="collapsible-content"> <div class="loader">Carregando histórico do Firebase...</div>
+                </div>
+            </div>
+
             <div class="public-calendar-section" style="background: #1a1a2e; padding-top: 20px;">
                 <h2 class="section-title">Próximas Etapas - <span class="text-blue-highlight">Copa Alcer</span></h2>
                 <div id="copa-container-logged" class="calendar-grid">
@@ -257,7 +258,6 @@
             </div>
 
         </div>
-
         <div class="footer">
             Potencialize seus treinos e resultados com soluções digitais.
             <a href="https://thiaguinhosolucoesia-tech.github.io/thIAguinho_Solucoes_IA/" target="_blank" rel="noopener noreferrer">
@@ -266,7 +266,7 @@
         </div>
     </div>
 
-    
+
     <dialog id="race-modal">
         <form id="race-form">
             <input type="hidden" id="race-id">
@@ -310,7 +310,7 @@
                 </div>
 
                 <div class="runner-form-group runner2" id="runner2-form-group">
-                    <h4 id="runner2-form-name">Corredor 2 🏃‍♀️</h4>
+                    <h4 id="runner2-form-name">Corredora 2 🏃‍♀️</h4>
                     <div class="form-group">
                         <label for="runner2Status">Status</label>
                         <select id="runner2Status">
@@ -348,7 +348,7 @@
         </form>
     </dialog>
 
-    
+
     <dialog id="media-modal">
         <form id="media-form">
             <input type="hidden" id="media-race-id">
@@ -360,11 +360,10 @@
                 <p class="form-help-text">Adicione fotos da sua corrida. Elas aparecerão no seu histórico.</p>
                 <div class="form-group full-width">
                     <label for="media-file-input">Selecionar Imagens</label>
-                    
+
                     <input type="file" id="media-file-input" class="form-input-file" accept="image/*" multiple required>
                     <div id="media-preview-container" class="media-preview-grid">
-                        
-                    </div>
+                        </div>
                     <div id="media-upload-status" class="upload-status"></div>
                 </div>
             </div>
@@ -375,7 +374,7 @@
         </form>
     </dialog>
 
-    
+
     <dialog id="profile-edit-modal">
         <form id="profile-edit-form">
             <div class="modal-header">
@@ -428,7 +427,7 @@
         </form>
     </dialog>
 
-    
+
     <div id="modal-overlay" class="v2-modal-overlay hidden">
         <div id="results-modal" class="v2-modal-content">
             <button id="btn-close-results-modal" class="v2-modal-close-btn">&times;</button>
@@ -443,21 +442,20 @@
         </div>
     </div>
 
-    
+
     <dialog id="likers-modal">
         <div class="modal-header">
             <h2 id="likers-modal-title">Curtidas</h2>
             <button type="button" class="btn-control" id="btn-close-likers-modal" aria-label="Fechar">✖️</button>
         </div>
         <div class="modal-body" id="likers-modal-list">
-            
-        </div>
+            </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="btn-cancel-likers-modal">Fechar</button>
         </div>
     </dialog>
 
-    
+
     <div id="lightbox-overlay" class="lightbox-overlay hidden">
         <button id="lightbox-close" class="lightbox-close-btn">&times;</button>
         <button id="lightbox-prev" class="lightbox-nav-btn prev">&lt;</button>
@@ -466,11 +464,11 @@
         <div id="lightbox-caption">Foto X de Y</div>
     </div>
 
-    
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
 
     <script src="js/config.js"></script>
