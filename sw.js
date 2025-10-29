@@ -1,5 +1,5 @@
 // Define o nome do cache
-const CACHE_NOME = 'curriculo-corredores-v4'; // ATUALIZADO para v4
+const CACHE_NOME = 'curriculo-corredores-v5'; // ATUALIZADO para v5 (Esta é a correção)
 
 // Lista de arquivos exatos do seu projeto para o App Shell
 const listaUrlsParaCache = [
@@ -17,26 +17,26 @@ const listaUrlsParaCache = [
 
 // Evento 'install': Salva os arquivos do App Shell no cache
 self.addEventListener('install', (event) => {
-  console.log('[ServiceWorker] Instalando (v4)...');
+  console.log('[ServiceWorker] Instalando (v5)...');
   event.waitUntil(
     caches.open(CACHE_NOME)
       .then((cache) => {
-        console.log('[ServiceWorker] Abrindo cache e salvando o App Shell (v4)');
+        console.log('[ServiceWorker] Abrindo cache e salvando o App Shell (v5)');
         return cache.addAll(listaUrlsParaCache);
       })
       .then(() => {
-        console.log('[ServiceWorker] Instalação completa (v4), App Shell cacheado.');
+        console.log('[ServiceWorker] Instalação completa (v5), App Shell cacheado.');
         return self.skipWaiting(); // Força o novo SW a ativar
       })
       .catch((error) => {
-        console.error('[ServiceWorker] Falha ao cachear o App Shell (v4):', error);
+        console.error('[ServiceWorker] Falha ao cachear o App Shell (v5):', error);
       })
   );
 });
 
 // Evento 'activate': Limpa caches antigos
 self.addEventListener('activate', (event) => {
-  console.log('[ServiceWorker] Ativando (v4)...');
+  console.log('[ServiceWorker] Ativando (v5)...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -49,7 +49,7 @@ self.addEventListener('activate', (event) => {
         })
       );
     }).then(() => {
-        console.log('[ServiceWorker] Ativado (v4) e pronto para controlar a página.');
+        console.log('[ServiceWorker] Ativado (v5) e pronto para controlar a página.');
         return self.clients.claim(); // Torna-se o SW controlador imediatamente
     })
   );
