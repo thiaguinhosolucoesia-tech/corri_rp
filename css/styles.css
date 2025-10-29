@@ -533,7 +533,296 @@ body {
 
 
 /* ================================================= */
-/* SEÇÃO DE PERFIS PÚBLICOS (V1)                     */
+/* SEÇÃO DE PERFIL PÚBLICO (V1)                      */
+/* ================================================= */
+
+/* ================================================= */
+/* SEÇÃO DE MESSENGER (V9)                           */
+/* ================================================= */
+.messenger-modal {
+    width: 90%;
+    max-width: 800px;
+    height: 90%;
+    max-height: 700px;
+}
+
+.messenger-body {
+    display: flex;
+    height: calc(100% - 70px); /* Altura total - altura do header */
+    border-top: 1px solid #444;
+}
+
+.chat-list-container {
+    width: 300px;
+    min-width: 250px;
+    padding: 15px;
+    border-right: 1px solid #444;
+    overflow-y: auto;
+}
+
+.chat-list-container h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #c5cae9;
+}
+
+.chat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    background: #2a2a3a;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.chat-item:hover {
+    background: #333345;
+}
+
+.chat-item.active {
+    background: #667eea;
+    color: white;
+}
+
+.chat-item-info {
+    flex-grow: 1;
+    margin-left: 10px;
+}
+
+.chat-item-info strong {
+    display: block;
+    font-size: 1em;
+}
+
+.chat-item-info span {
+    font-size: 0.8em;
+    color: #b0b0b0;
+}
+
+.chat-item.active .chat-item-info span {
+    color: #e0e0e0;
+}
+
+.chat-window-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #444;
+}
+
+.chat-header h3 {
+    margin: 0;
+    margin-left: 10px;
+    font-size: 1.2em;
+}
+
+#btn-back-to-chats {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #c5cae9;
+}
+
+.messages-container {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 15px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.message-received {
+    align-self: flex-start;
+    background: #444;
+    color: white;
+    border-bottom-left-radius: 2px;
+}
+
+.message-sent {
+    align-self: flex-end;
+    background: #667eea;
+    color: white;
+    border-bottom-right-radius: 2px;
+}
+
+.message-time {
+    display: block;
+    font-size: 0.7em;
+    margin-top: 5px;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.chat-form {
+    display: flex;
+    padding: 10px 15px;
+    border-top: 1px solid #444;
+    gap: 10px;
+}
+
+.chat-form input {
+    flex-grow: 1;
+    margin-bottom: 0;
+}
+
+.no-chat-selected {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #b0b0b0;
+}
+
+@media (max-width: 768px) {
+    /* Layout Geral */
+    .container {
+        margin: 0;
+        border-radius: 0;
+    }
+    .content {
+        padding: 15px;
+    }
+
+    /* Cabeçalho */
+    .header {
+        padding: 15px 10px 25px 10px;
+    }
+    .header h1 {
+        font-size: 1.8em;
+    }
+    #header-subtitle {
+        font-size: 1em;
+    }
+    .header-profile-pic {
+        width: 60px;
+        height: 60px;
+    }
+    #btn-edit-profile {
+        right: 10px;
+        bottom: 10px;
+    }
+    .header-controls {
+        top: 10px;
+        right: 10px;
+    }
+    #btn-back-to-public, #btn-back-to-my-dashboard {
+        top: 10px;
+        left: 10px;
+        padding: 6px 10px;
+        font-size: 0.8em;
+    }
+
+    /* Login/Cadastro */
+    #login-view {
+        padding: 20px 15px;
+    }
+    .login-buttons {
+        flex-direction: column;
+    }
+
+    /* Dashboard */
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    .stat-card {
+        padding: 10px;
+    }
+    .stat-number {
+        font-size: 1.2em;
+    }
+    .stat-label {
+        font-size: 0.7em;
+    }
+
+    /* Histórico de Corridas */
+    .race-card {
+        padding: 15px;
+    }
+    .race-card-header h3 {
+        font-size: 1.2em;
+    }
+    .runner-info-block {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    .runner-info-block .time, .runner-info-block .pace {
+        font-size: 1em;
+    }
+    .race-card-social {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .like-section {
+        margin-bottom: 5px;
+    }
+
+    /* Admin Panel */
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+    .admin-section {
+        margin-bottom: 20px;
+    }
+    .pending-item, .approved-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .admin-buttons {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Messenger */
+    .messenger-modal {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+    }
+    .messenger-body {
+        flex-direction: column;
+    }
+    .chat-list-container {
+        width: 100%;
+        min-width: unset;
+        height: 200px;
+        border-right: none;
+        border-bottom: 1px solid #444;
+    }
+    .chat-window-container {
+        height: calc(100% - 200px);
+    }
+}
+/* ================================================= */
+/* SEÇÃO DE PERFIL PÚBLICO (V1)                      */
 /* ================================================= */
 #public-view {
     padding: 30px;
@@ -858,7 +1147,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 #btn-delete.hidden { display: none; }
 
 /* ================================================= */
-/* SEÇÃO DE CALENDÁRIO PÚBLICO (V2 + V9.1)           */
+/* SEÇÃO DE CALENDÁRIO PÚBLICO (V2)                  */
 /* ================================================= */
 .public-calendar-section { padding: 30px; }
 .section-title { font-size: 2.25rem; font-weight: 800; text-align: center; margin-bottom: 3rem; color: white; }
@@ -878,8 +1167,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .v2-race-info { padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
 .v2-race-info h3 { font-weight: bold; font-size: 1.2em; color: white; }
 .v2-race-info p { font-size: 0.9em; color: #b0b0b0; }
-.v2-race-buttons { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; /* Permite quebrar linha se necessário */ }
-.v2-results-button, .v2-race-button-disabled, .v2-inscricoes-button, .v2-add-personal-button { /* Adicionado V9.1 */
+.v2-race-buttons { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.v2-results-button, .v2-race-button-disabled, .v2-inscricoes-button {
     text-align: center; font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.875rem;
     transition: all 0.2s; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; text-decoration: none;
 }
@@ -888,12 +1177,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .v2-inscricoes-button { background-color: #16a34a; color: white; }
 .v2-inscricoes-button:hover { background-color: #15803d; }
 .v2-race-button-disabled { background-color: #4b5563; color: #9ca3af; cursor: not-allowed; }
-.v2-add-personal-button { /* V9.1 */
-    background-color: #0ea5e9; /* Azul claro */
-    color: white;
-}
-.v2-add-personal-button:hover { background-color: #0284c7; }
-
 
 /* ================================================= */
 /* MODAL DE RESULTADOS (V2)                          */
@@ -1086,32 +1369,21 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 
 
 /* ================================================= */
-/* RESPONSIVIDADE (V1 + V2 + V5 + V6 + V7/8 + V9.X)  */
+/* RESPONSIVIDADE (V1 + V2 + V5 + V6 + V7/8)         */
 /* ================================================= */
 @media (max-width: 900px) {
     .admin-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
-    body {
-        padding: 0;
-        overflow-y: auto; /* CORREÇÃO V9.X - Garante que o body possa rolar */
-        /* min-height: 100vh; */ /* Manter comentado ou remover */
-    }
-    .container {
-        margin: 0;
-        border-radius: 0;
-        border: none;
-        /* min-height: 100vh; */ /* REMOVIDO V9.3 - Causava corte de conteúdo */
-        overflow: visible; /* CORRIGIDO V9.3 - Permite ao container crescer */
-        height: auto; /* CORREÇÃO V9.X - Garante que altura seja definida pelo conteúdo */
-    }
+    body { padding: 0; }
+    .container { margin: 0; border-radius: 0; border: none; min-height: 100vh; }
     .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
     #login-form { max-width: 100%; }
     #btn-back-to-public, #btn-back-to-my-dashboard { top: 10px; left: 10px; padding: 6px 8px; font-size: 0.8em; }
     .header { padding: 15px; }
     .header h1 { font-size: 1.8em; }
-    /* .header p { font-size: 1em; } */ /* Comentado - pode ser redundante com .header-sub-info */
+    .header p { font-size: 1em; }
     .header-profile-pic { width: 60px; height: 60px; margin-bottom: 8px; }
     #btn-edit-profile { position: static; display: block; width: 80%; margin: 15px auto 0 auto; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -1127,69 +1399,4 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     .lightbox-nav-btn { font-size: 2rem; padding: 5px 10px; } /* Menores botões lightbox */
     .lightbox-close-btn { font-size: 2rem; top: 10px; right: 10px; }
     #lightbox-caption { font-size: 0.8em; bottom: 10px; }
-}
-
-
-/* ================================================= */
-/* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
-/* ================================================= */
-
-.section-header-collapsible {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px; /* Mantém o espaçamento original do título */
-    cursor: pointer; /* Indica que o cabeçalho é clicável */
-    padding: 10px 0; /* Adiciona um pouco de padding para área de clique */
-}
-
-.section-header-collapsible .dashboard-header {
-    margin-bottom: 0; /* Remove a margem inferior do H2 */
-    border-bottom: none; /* Remove a borda inferior do H2 */
-    padding-bottom: 0; /* Remove o padding inferior do H2 */
-}
-
-.btn-toggle-section {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #c5cae9;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6em; /* Tamanho do ícone */
-    cursor: pointer;
-    transition: background 0.3s, transform 0.3s ease;
-}
-
-.btn-toggle-section:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.collapsible-content {
-    max-height: 10000px; /* Um valor grande para garantir que não corte o conteúdo */
-    overflow: hidden;
-    transition: max-height 0.5s ease-out, opacity 0.3s ease-out, margin-top 0.5s ease-out;
-    opacity: 1;
-    margin-top: 0; /* Espaçamento normal quando expandido */
-}
-
-.collapsible-content.collapsed {
-    max-height: 0;
-    opacity: 0;
-    margin-top: -20px; /* Reduz espaço extra quando recolhido */
-    /* A transição fará a animação de recolher/expandir */
-}
-
-/* Rotação do ícone do botão */
-.btn-toggle-section i.bx-chevron-down {
-    transform: rotate(0deg);
-    transition: transform 0.3s ease;
-}
-
-.btn-toggle-section i.bx-chevron-up {
-    transform: rotate(180deg); /* Rotação para indicar "recolhido" */
-    transition: transform 0.3s ease;
 }
