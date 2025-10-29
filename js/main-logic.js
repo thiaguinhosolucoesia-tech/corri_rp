@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE LÓGICA PRINCIPAL (V9 - Correção Duplicação)
+// ARQUIVO DE LÓGICA PRINCIPAL (V9 - Correção Resultados + Bug Duplicação)
 // =================================================================
 
 // --- Variáveis Globais do App ---
@@ -700,7 +700,7 @@ function loadRaces(uid) {
         db.races = snapshot.val() || {};
         // renderAllV1Profile(); // REMOVIDO
         // Chama apenas o que depende das corridas
-        renderDashboard(); 
+        renderDashboard();
         renderHistory();
     },
     (error) => {
@@ -824,17 +824,107 @@ function renderCalendar(corridas, container, buttonType) {
     }).join('');
     container.querySelectorAll('.v2-results-button').forEach(button => { button.addEventListener('click', (e) => { const raceId = e.currentTarget.dataset.raceId; showRaceResultsModal(raceId); }); });
 }
+
+// **INÍCIO DA CORREÇÃO (BUG RESULTADOS)**
 function showRaceResultsModal(raceId) {
-    const race = appState.allCorridas.copaAlcer?.[raceId] || appState.allCorridas.geral?.[raceId]; const results = appState.resultadosEtapas[raceId]; if (!race || !results) { console.error("Dados não encontrados:", raceId); return; }
-    dom.modalTitleResults.textContent = `Resultados - ${race.nome}`; let contentHTML = '';
-    for (const categoryKey in results) { if (results.hasOwnProperty(categoryKey)) { for (const genderKey in results[categoryKey]) { if (results[categoryKey].hasOwnProperty(genderKey)) {
-        const atletas = results[categoryKey][genderKey]; if (atletas && atletas.length > 0) {
-            contentHTML += `<h3 class="v2-modal-category-title">${categoryKey} - ${genderKey.charAt(0).toUpperCase() + genderKey.slice(1)}</h3>`; contentHTML += `<div style="overflow-x: auto;"><table class="v2-results-table"><thead><tr><th>#</th><th>Atleta</th><th>Equipe</th><th>Tempo</th></tr></thead><tbody>${atletas.map(atleta => `<tr><td class="font-medium">${atleta.classificacao}</td><td>${atleta.nome}</td><td style="color: #b0b0b0;">${atleta.assessoria || 'Individual'}</td><td style="font-family: monospace;">${atleta.tempo}</td></tr>`).join('')}</tbody></table></div>`;
-    }}}}} dom.modalContentResults.innerHTML = contentHTML || '<p>Nenhum resultado.</p>'; dom.modalSearchInput.value = ''; filterResultsInModal(); dom.modalOverlay.classList.remove('hidden');
+    const race = appState.allCorridas.copaAlcer?.[raceId] || appState.allCorridas.geral?.[raceId];
+    const resultsData = appState.resultadosEtapas[raceId]; // Pode ser um array ou um objeto
+
+    if (!race || !resultsData) {
+        console.error("Dados da corrida ou resultados não encontrados para:", raceId);
+        return;
+    }
+
+    dom.modalTitleResults.textContent = `Resultados - ${race.nome}`;
+    let contentHTML = '';
+
+    // Verifica se resultsData é um Array (formato do resultado.json)
+    if (Array.isArray(resultsData)) {
+        // Agrupa os resultados pela string exata da categoria
+        const groupedResults = resultsData.reduce((acc, atleta) => {
+            const category = atleta.category || "Categoria Desconhecida";
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+            // Garante que a propriedade 'placement' exista e seja usada para ordenar
+            const placement = parseInt(atleta.placement || atleta.classificacao || "9999");
+            acc[category].push({ ...atleta, placement: placement }); // Adiciona 'placement' numérico
+            return acc;
+        }, {});
+
+        // Ordena as categorias (opcional, mas pode ser útil)
+        const sortedCategories = Object.keys(groupedResults).sort();
+
+        // Gera o HTML a partir dos grupos
+        sortedCategories.forEach(category => {
+            const atletas = groupedResults[category];
+            // Ordena atletas dentro da categoria pela colocação ('placement')
+            atletas.sort((a, b) => a.placement - b.placement);
+
+            if (atletas.length > 0) {
+                contentHTML += `<h3 class="v2-modal-category-title">${category}</h3>`;
+                contentHTML += `<div style="overflow-x: auto;"><table class="v2-results-table"><thead><tr><th>#</th><th>Atleta</th><th>Equipe</th><th>Tempo</th></tr></thead><tbody>`;
+                contentHTML += atletas.map(atleta => `
+                    <tr>
+                        <td class="font-medium">${atleta.placement}</td>
+                        <td>${atleta.name || atleta.nome || 'N/A'}</td>
+                        <td style="color: #b0b0b0;">${atleta.team || atleta.assessoria || 'Individual'}</td>
+                        <td style="font-family: monospace;">${atleta.time || atleta.tempo || 'N/A'}</td>
+                    </tr>`).join('');
+                contentHTML += `</tbody></table></div>`;
+            }
+        });
+
+    } else if (typeof resultsData === 'object' && resultsData !== null) {
+        // Lógica original para dados estruturados (mantida para compatibilidade)
+        for (const categoryKey in resultsData) {
+            if (resultsData.hasOwnProperty(categoryKey)) {
+                for (const genderKey in resultsData[categoryKey]) {
+                    if (resultsData[categoryKey].hasOwnProperty(genderKey)) {
+                        const atletas = resultsData[categoryKey][genderKey];
+                        if (atletas && Array.isArray(atletas) && atletas.length > 0) {
+                            // Ordena atletas pela 'classificacao'
+                            atletas.sort((a,b) => parseInt(a.classificacao || "9999") - parseInt(b.classificacao || "9999"));
+
+                            contentHTML += `<h3 class="v2-modal-category-title">${categoryKey} - ${genderKey.charAt(0).toUpperCase() + genderKey.slice(1)}</h3>`;
+                            contentHTML += `<div style="overflow-x: auto;"><table class="v2-results-table"><thead><tr><th>#</th><th>Atleta</th><th>Equipe</th><th>Tempo</th></tr></thead><tbody>`;
+                            contentHTML += atletas.map(atleta => `
+                                <tr>
+                                    <td class="font-medium">${atleta.classificacao}</td>
+                                    <td>${atleta.nome || 'N/A'}</td>
+                                    <td style="color: #b0b0b0;">${atleta.assessoria || 'Individual'}</td>
+                                    <td style="font-family: monospace;">${atleta.tempo || 'N/A'}</td>
+                                </tr>`).join('');
+                            contentHTML += `</tbody></table></div>`;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    dom.modalContentResults.innerHTML = contentHTML || '<p>Nenhum resultado encontrado ou formato inválido.</p>';
+    dom.modalSearchInput.value = '';
+    filterResultsInModal(); // Aplica filtro inicial (mostrar tudo)
+    dom.modalOverlay.classList.remove('hidden');
 }
+// **FIM DA CORREÇÃO (BUG RESULTADOS)**
+
+
 function filterResultsInModal() {
-    const searchTerm = dom.modalSearchInput.value.toUpperCase(); dom.modalContentResults.querySelectorAll('.v2-results-table tbody tr').forEach(row => { const athleteName = row.cells[1].textContent.toUpperCase(); row.style.display = athleteName.includes(searchTerm) ? '' : 'none'; });
+    const searchTerm = dom.modalSearchInput.value.toUpperCase();
+    dom.modalContentResults.querySelectorAll('.v2-results-table tbody tr').forEach(row => {
+        // Verifica se a linha existe e tem as células esperadas
+        if (row && row.cells && row.cells.length > 1) {
+            const athleteName = row.cells[1].textContent.toUpperCase();
+            row.style.display = athleteName.includes(searchTerm) ? '' : 'none';
+        } else {
+            // Opcional: Logar ou tratar linhas inválidas se necessário
+             console.warn("Linha de tabela inválida encontrada durante a filtragem:", row);
+        }
+    });
 }
+
 function closeResultsModal() { dom.modalOverlay.classList.add('hidden'); }
 
 // ======================================================
