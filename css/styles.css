@@ -1098,9 +1098,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
         margin: 0; 
         border-radius: 0; 
         border: none; 
-        min-height: 100vh; 
-        overflow-y: auto; /* Correção V9.3: Permite rolagem vertical no mobile */
-        overflow-x: hidden; /* Correção V9.3: Impede rolagem horizontal */
+        /* min-height: 100vh; */ /* REMOVIDO V9.3 - Causava corte de conteúdo */
+        overflow: visible; /* CORRIGIDO V9.3 - Permite ao container crescer e a página rolar */
     }
     .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
     #login-form { max-width: 100%; }
