@@ -1094,7 +1094,14 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 
 @media (max-width: 768px) {
     body { padding: 0; }
-    .container { margin: 0; border-radius: 0; border: none; min-height: 100vh; }
+    .container { 
+        margin: 0; 
+        border-radius: 0; 
+        border: none; 
+        min-height: 100vh; 
+        overflow-y: auto; /* Correção V9.3: Permite rolagem vertical no mobile */
+        overflow-x: hidden; /* Correção V9.3: Impede rolagem horizontal */
+    }
     .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
     #login-form { max-width: 100%; }
     #btn-back-to-public, #btn-back-to-my-dashboard { top: 10px; left: 10px; padding: 6px 8px; font-size: 0.8em; }
