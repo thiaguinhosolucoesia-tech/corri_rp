@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE LÓGICA PRINCIPAL (V9.1 - Add Corrida Pública + Correção Resultados/Duplicação)
+// ARQUIVO DE LÓGICA PRINCIPAL (V9.1 - Layout Recolhível + Add Corrida Pública + Correção Resultados/Duplicação)
 // =================================================================
 
 // --- Variáveis Globais do App ---
@@ -40,7 +40,7 @@ const RUNNER_2_KEY = "runner2";
 let RUNNER_1_PROFILE = { name: 'Corredor 1', nameShort: 'Corredor 1', emoji: '🏃‍♂️' };
 let RUNNER_2_PROFILE = { name: 'Corredora 2', nameShort: 'Corredora 2', emoji: '🏃‍♀️' };
 
-// --- Cache de Elementos DOM (Completo V7/8) ---
+// --- Cache de Elementos DOM (Completo V9.1) ---
 const dom = {
     // V1 (Perfis & Auth)
     btnLogout: document.getElementById('btn-logout'),
@@ -71,7 +71,7 @@ const dom = {
     summaryGrid: document.getElementById('summary-grid'),
     controlsSection: document.getElementById('controls-section'),
     btnAddnew: document.getElementById('btn-add-new'),
-    historyContainer: document.getElementById('history-container'),
+    historyContainer: document.getElementById('history-container'), // ID do container HTML
     pendingApprovalView: document.getElementById('pending-approval-view'),
     rejectedView: document.getElementById('rejected-view'),
     rejectedEmail: document.getElementById('rejected-email'),
@@ -156,7 +156,11 @@ const dom = {
     lightboxClose: document.getElementById('lightbox-close'),
     lightboxPrev: document.getElementById('lightbox-prev'),
     lightboxNext: document.getElementById('lightbox-next'),
-    lightboxCaption: document.getElementById('lightbox-caption')
+    lightboxCaption: document.getElementById('lightbox-caption'),
+
+    // V9.1 (Layout Recolhível)
+    toggleHistoryBtn: document.getElementById('toggle-history-btn'),
+    historyContent: document.getElementById('history-container') // Cache para o conteúdo recolhível
 };
 
 // ======================================================
@@ -370,7 +374,7 @@ function renderDashboard() {
 }
 
 function renderHistory() {
-    dom.historyContainer.innerHTML = '';
+    dom.historyContent.innerHTML = ''; // Usa historyContent (cache DOM)
     // Desliga listeners de interações antigas
     Object.values(currentRaceCommentsListeners).forEach(ref => ref.off()); // Agora usa race interactions listeners
     currentRaceCommentsListeners = {};
@@ -389,7 +393,7 @@ function renderHistory() {
     const sortedYears = Object.keys(racesByYear).sort((a, b) => b - a);
 
     if (sortedYears.length === 0) {
-        dom.historyContainer.innerHTML = `<div class="loader">${authUser ? 'Nenhuma corrida encontrada. Clique em "Adicionar Nova Corrida".' : 'Perfil sem corridas.'}</div>`;
+        dom.historyContent.innerHTML = `<div class="loader">${authUser ? 'Nenhuma corrida encontrada. Clique em "Adicionar Nova Corrida".' : 'Perfil sem corridas.'}</div>`;
         return;
     }
 
@@ -404,7 +408,7 @@ function renderHistory() {
         racesByYear[year].forEach(race => raceList.appendChild(createRaceCard(race)));
 
         yearGroup.appendChild(raceList);
-        dom.historyContainer.appendChild(yearGroup);
+        dom.historyContent.appendChild(yearGroup);
     }
 }
 
@@ -709,7 +713,7 @@ function loadRaces(uid) {
     currentRaceCommentsListeners = {};
     dom.prGrid.innerHTML = '<div class="loader">Carregando PRs...</div>';
     dom.summaryGrid.innerHTML = '<div class="loader">Calculando...</div>';
-    dom.historyContainer.innerHTML = '<div class="loader">Carregando histórico...</div>';
+    dom.historyContent.innerHTML = '<div class="loader">Carregando histórico...</div>'; // Usa historyContent
     racesRef.off('value');
     racesRef.on('value', (snapshot) => {
         db.races = snapshot.val() || {};
@@ -1254,6 +1258,27 @@ function showPrevImage() { if (lightboxState.currentIndex > 0) { lightboxState.c
 function showNextImage() { if (lightboxState.currentIndex < lightboxState.images.length - 1) { lightboxState.currentIndex++; showLightboxImage(); } }
 
 // ======================================================
+// SEÇÃO V9.1: LÓGICA DE LAYOUT (Recolher/Expandir)
+// ======================================================
+function toggleCollapsibleSection(contentElement, buttonElement) {
+    if (!contentElement || !buttonElement) return;
+
+    const isCollapsed = contentElement.classList.toggle('collapsed');
+    const icon = buttonElement.querySelector('i');
+
+    if (isCollapsed) {
+        icon.classList.remove('bx-chevron-up');
+        icon.classList.add('bx-chevron-down');
+        buttonElement.title = "Expandir Histórico";
+    } else {
+        icon.classList.remove('bx-chevron-down');
+        icon.classList.add('bx-chevron-up');
+        buttonElement.title = "Recolher Histórico";
+    }
+}
+
+
+// ======================================================
 // PONTO DE ENTRADA PRINCIPAL (DOM LOADED)
 // ======================================================
 
@@ -1276,6 +1301,16 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.profileCommentForm.addEventListener('submit', handleProfileCommentSubmit);
     dom.lightboxClose.addEventListener('click', closeLightbox); dom.lightboxPrev.addEventListener('click', showPrevImage); dom.lightboxNext.addEventListener('click', showNextImage); dom.lightboxOverlay.addEventListener('click', (e) => { if (e.target === dom.lightboxOverlay) { closeLightbox(); } });
     document.addEventListener('keydown', (e) => { if (!lightboxState.isOpen) return; if (e.key === 'Escape') closeLightbox(); if (e.key === 'ArrowLeft') showPrevImage(); if (e.key === 'ArrowRight') showNextImage(); });
+    // Listener para recolher/expandir (V9.1)
+    dom.toggleHistoryBtn.addEventListener('click', () => toggleCollapsibleSection(dom.historyContent, dom.toggleHistoryBtn));
+    // Listener para clicar no título também (opcional, melhora usabilidade) (V9.1)
+    dom.toggleHistoryBtn.parentElement.addEventListener('click', (e) => {
+        // Só aciona se clicar fora do botão em si (para não acionar duas vezes)
+        if (e.target === dom.toggleHistoryBtn.parentElement || e.target === dom.toggleHistoryBtn.parentElement.querySelector('h2')) {
+            toggleCollapsibleSection(dom.historyContent, dom.toggleHistoryBtn);
+        }
+    });
+
 
     // Estado inicial
     toggleLoginMode(false);
