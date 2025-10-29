@@ -858,7 +858,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 #btn-delete.hidden { display: none; }
 
 /* ================================================= */
-/* SEÇÃO DE CALENDÁRIO PÚBLICO (V2)                  */
+/* SEÇÃO DE CALENDÁRIO PÚBLICO (V2 + V9.1)           */
 /* ================================================= */
 .public-calendar-section { padding: 30px; }
 .section-title { font-size: 2.25rem; font-weight: 800; text-align: center; margin-bottom: 3rem; color: white; }
@@ -878,8 +878,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .v2-race-info { padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
 .v2-race-info h3 { font-weight: bold; font-size: 1.2em; color: white; }
 .v2-race-info p { font-size: 0.9em; color: #b0b0b0; }
-.v2-race-buttons { display: flex; gap: 0.5rem; margin-top: 1rem; }
-.v2-results-button, .v2-race-button-disabled, .v2-inscricoes-button {
+.v2-race-buttons { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; /* Permite quebrar linha se necessário */ }
+.v2-results-button, .v2-race-button-disabled, .v2-inscricoes-button, .v2-add-personal-button { /* Adicionado V9.1 */
     text-align: center; font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.875rem;
     transition: all 0.2s; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; text-decoration: none;
 }
@@ -888,6 +888,12 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .v2-inscricoes-button { background-color: #16a34a; color: white; }
 .v2-inscricoes-button:hover { background-color: #15803d; }
 .v2-race-button-disabled { background-color: #4b5563; color: #9ca3af; cursor: not-allowed; }
+.v2-add-personal-button { /* V9.1 */
+    background-color: #0ea5e9; /* Azul claro */
+    color: white;
+}
+.v2-add-personal-button:hover { background-color: #0284c7; }
+
 
 /* ================================================= */
 /* MODAL DE RESULTADOS (V2)                          */
@@ -1110,4 +1116,69 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     .lightbox-nav-btn { font-size: 2rem; padding: 5px 10px; } /* Menores botões lightbox */
     .lightbox-close-btn { font-size: 2rem; top: 10px; right: 10px; }
     #lightbox-caption { font-size: 0.8em; bottom: 10px; }
+}
+
+
+/* ================================================= */
+/* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
+/* ================================================= */
+
+.section-header-collapsible {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Mantém o espaçamento original do título */
+    cursor: pointer; /* Indica que o cabeçalho é clicável */
+    padding: 10px 0; /* Adiciona um pouco de padding para área de clique */
+}
+
+.section-header-collapsible .dashboard-header {
+    margin-bottom: 0; /* Remove a margem inferior do H2 */
+    border-bottom: none; /* Remove a borda inferior do H2 */
+    padding-bottom: 0; /* Remove o padding inferior do H2 */
+}
+
+.btn-toggle-section {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #c5cae9;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6em; /* Tamanho do ícone */
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s ease;
+}
+
+.btn-toggle-section:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.collapsible-content {
+    max-height: 10000px; /* Um valor grande para garantir que não corte o conteúdo */
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.3s ease-out, margin-top 0.5s ease-out;
+    opacity: 1;
+    margin-top: 0; /* Espaçamento normal quando expandido */
+}
+
+.collapsible-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: -20px; /* Reduz espaço extra quando recolhido */
+    /* A transição fará a animação de recolher/expandir */
+}
+
+/* Rotação do ícone do botão */
+.btn-toggle-section i.bx-chevron-down {
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
+}
+
+.btn-toggle-section i.bx-chevron-up {
+    transform: rotate(180deg); /* Rotação para indicar "recolhido" */
+    transition: transform 0.3s ease;
 }
