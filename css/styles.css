@@ -963,7 +963,9 @@ html, body {
     /* padding: 30px; */ /* <-- REMOVIDO V9.7 */
     /* background: transparent; */ /* <-- REMOVIDO V9.7 */
     /* flex-shrink: 0; */ /* REMOVIDO V11 */
-    /* --- CORREÇÃO V13: Removido height/min-height --- */
+    /* --- CORREÇÃO V14: Adicionado overflow:hidden --- */
+    overflow: hidden; /* Essencial para a animação do grid funcionar */
+    /* --- CORREÇÃO V14: Removido height/min-height --- */
     /* height: auto; */ /* Se estiver definido, remova */
     /* min-height: 0; */ /* Se estiver definido, remova */
 }
