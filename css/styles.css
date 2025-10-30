@@ -1,6 +1,6 @@
 /* ================================================= */
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
-/* V9.11 - CORREÇÃO FINAL LAYOUT (CAMPO PRETO)       */
+/* V11 - CORREÇÃO FINAL LAYOUT (CAMPO PRETO)         */
 /* ================================================= */
 * {
     margin: 0;
@@ -21,7 +21,7 @@ html, body {
     overflow-y: auto;   /* Permite rolagem vertical */
 }
 
-/* * CORREÇÃO V9.11: Removido min-height 
+/* * CORREÇÃO V11: Removido min-height 
  * O container agora cresce e encolhe com o conteúdo.
 */
 .container {
@@ -37,7 +37,7 @@ html, body {
     /* --- Correção Layout Flex --- */
     display: flex;
     flex-direction: column;
-    /* min-height: calc(100vh - 40px); */ /* REMOVIDO V9.11 - Causa do "Campo Preto" */
+    /* min-height: calc(100vh - 40px); */ /* REMOVIDO V11 - Causa do "Campo Preto" */
 }
 
 /* ================================================= */
@@ -129,8 +129,8 @@ html, body {
     font-size: 0.9em;
     border-top: 1px solid #444;
     
-    /* --- Correção Layout Flex V9.9 --- */
-    margin-top: auto; /* *IMPORTANTE* Empurra o rodapé para o fim se o conteúdo for CURTO */
+    /* --- Correção Layout Flex V11 --- */
+    margin-top: auto; /* Empurra o rodapé para o fim se o conteúdo for CURTO */
     flex-shrink: 0; /* Impede o rodapé de encolher */
 }
 
@@ -292,7 +292,7 @@ html, body {
     padding: 40px 30px;
     background: #1a1a2e;
     text-align: center;
-    /* flex-grow: 1; */ /* REMOVIDO V9.9 */
+    /* flex-grow: 1; */ /* REMOVIDO V11 - Causa do "Campo Preto" */
 }
 #pending-approval-view, #rejected-view {
      padding: 60px 30px;
@@ -850,7 +850,7 @@ html, body {
     text-align: center;
     background: #1f2027;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    /* flex-grow: 1; */ /* REMOVIDO V9.9 */
+    /* flex-grow: 1; */ /* REMOVIDO V11 - Causa do "Campo Preto" */
 }
 #public-view h2 {
     color: #c5cae9;
@@ -914,7 +914,7 @@ html, body {
     padding: 20px 30px;
     background: #1f2027;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    flex-shrink: 0; /* Impede de encolher */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .public-profile-list-section .section-title {
     font-size: 1.8em;
@@ -930,16 +930,16 @@ html, body {
 /* DASHBOARD DO USUÁRIO (V1)                         */
 /* ================================================= */
 
-/* *** CORREÇÃO V9.8: REMOVIDO 'flex-grow: 1' DAQUI *** */
+/* *** CORREÇÃO V11: REMOVIDO 'flex-grow: 1' DAQUI *** */
 #user-content {
     /* Esta view só é mostrada quando logada */
-    /* flex-grow: 1; */ /* REMOVIDO V9.9 */
+    /* flex-grow: 1; */ /* REMOVIDO V11 */
 }
 .dashboard-section {
     padding: 30px;
     background: rgba(20, 20, 30, 0.5);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    flex-shrink: 0; /* Impede de encolher */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .dashboard-header {
     text-align: center;
@@ -1007,7 +1007,7 @@ html, body {
     padding: 20px 30px;
     text-align: center;
     background: #1a1a2e;
-    flex-shrink: 0; /* Impede de encolher */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .btn-add {
     padding: 15px 30px;
@@ -1029,7 +1029,7 @@ html, body {
 .history-section {
     /* padding: 30px; */ /* <-- REMOVIDO V9.7 */
     /* background: transparent; */ /* <-- REMOVIDO V9.7 */
-    flex-shrink: 0; /* Impede de encolher */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .year-group {
     margin-bottom: 30px;
@@ -1180,7 +1180,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 /* ================================================= */
 .public-calendar-section { 
     padding: 30px; 
-    flex-shrink: 0; /* Impede de encolher */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .section-title { font-size: 2.25rem; font-weight: 800; text-align: center; margin-bottom: 3rem; color: white; }
 .text-blue-highlight { color: #60a5fa; }
@@ -1337,7 +1337,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 /* --- Seção de Comentários (Corrida e Perfil) --- */
 .race-card-comments, .profile-comments-section {
     padding: 20px; background: #1f2027; border-top: 1px solid #444;
-    flex-shrink: 0; /* Impede de encolher */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .profile-comments-section { border-radius: 0 0 20px 20px; } /* Ajuste borda container */
 .comments-title { font-size: 1.1em; color: #c5cae9; margin-bottom: 15px; font-weight: 600; }
