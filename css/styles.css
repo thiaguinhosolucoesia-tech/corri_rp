@@ -1,6 +1,6 @@
 /* ================================================= */
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
-/* V9.4 - CORREÇÃO ROLAGEM MOBILE + ANIMAÇÃO         */
+/* V9.5 - CORREÇÃO ROLAGEM MOBILE + ANIMAÇÃO GRID    */
 /* ================================================= */
 * {
     margin: 0;
@@ -22,7 +22,6 @@ html, body {
 }
 
 /* * CORREÇÃO V9.4: Ajustado para layout flex (empurrar footer)
- * sem quebrar a animação de recolher.
 */
 .container {
     max-width: 1400px;
@@ -1442,6 +1441,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 
 /* ================================================= */
 /* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
+/* V9.5 - ALTERADO PARA USAR GRID NO LUGAR DE MAX-HEIGHT */
 /* ================================================= */
 
 .section-header-collapsible {
@@ -1478,28 +1478,42 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* --- CORREÇÃO V9.5: Animação com Grid --- */
 .collapsible-content {
-    max-height: 10000px; /* Um valor grande para garantir que não corte o conteúdo */
-    overflow: hidden;
-    transition: max-height 0.5s ease-out, opacity 0.3s ease-out, margin-top 0.5s ease-out;
+    display: grid;
+    /* Inicia com 1fr (uma fração, ou seja, altura total do conteúdo) */
+    grid-template-rows: 1fr; 
+    transition: grid-template-rows 0.4s ease-out, opacity 0.3s ease-out;
     opacity: 1;
-    margin-top: 0; /* Espaçamento normal quando expandido */
+    /* Remove transições de max-height e margin-top */
 }
 
 .collapsible-content.collapsed {
-    max-height: 0;
+    /* Anima para 0fr (altura zero) */
+    grid-template-rows: 0fr; 
     opacity: 0;
-    margin-top: -20px; /* Reduz espaço extra quando recolhido */
-    /* A transição fará a animação de recolher/expandir */
+    /* Remove margin-top negativo */
 }
 
-/* Rotação do ícone do botão */
+/* * CHAVE DA CORREÇÃO V9.5: 
+ * O conteúdo *direto* dentro do grid animado 
+ * (no seu caso, os .loader ou .year-group dentro do #history-container)
+ * precisa ter overflow: hidden para a animação de grid funcionar.
+*/
+.collapsible-content > * {
+    overflow: hidden;
+}
+
+
+/* Rotação do ícone do botão (Invertida para V9.5) */
+/* O ícone "para baixo" (colapsado) é o estado padrão */
 .btn-toggle-section i.bx-chevron-down {
     transform: rotate(0deg);
     transition: transform 0.3s ease;
 }
 
+/* O ícone "para cima" (expandido) é quando o botão é clicado (classe é removida no JS) */
 .btn-toggle-section i.bx-chevron-up {
-    transform: rotate(180deg); /* Rotação para indicar "recolhido" */
+    transform: rotate(180deg);
     transition: transform 0.3s ease;
 }
