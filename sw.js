@@ -1,5 +1,5 @@
 // Define o nome do cache
-const CACHE_NOME = 'curriculo-corredores-v9.10'; // ATUALIZADO para v9.10 (Limpa cache antigo)
+const CACHE_NOME = 'curriculo-corredores-v13'; // ATUALIZADO para v13 (Limpa cache antigo)
 
 // Lista de arquivos exatos do seu projeto para o App Shell
 const listaUrlsParaCache = [
@@ -59,6 +59,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
+  // *** CORREÇÃO V13: IGNORA REQUISIÇÕES NÃO-GET (POST, PUT, etc.) ***
+  // Impede o erro "Request method 'POST' is unsupported"
+  if (event.request.method !== 'GET') {
+    // Não faz cache, apenas continua com a requisição de rede
+    return event.respondWith(fetch(event.request));
+  }
+
   // Se a requisição for para nosso próprio domínio (App Shell)
   if (requestUrl.origin === self.location.origin) {
     // Estratégia: Cache first, fallback to network
@@ -87,13 +94,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.open(CACHE_NOME).then((cache) => {
         return fetch(event.request).then((networkResponse) => {
-          
-          // *** CORREÇÃO V9.10: SÓ SALVA NO CACHE SE FOR GET ***
-          // Impede o erro "Request method 'POST' is unsupported"
-          if (event.request.method === 'GET') {
-            cache.put(event.request, networkResponse.clone());
-          }
-          
+          // Salva no cache (já sabemos que é GET pela verificação acima)
+          cache.put(event.request, networkResponse.clone());
           return networkResponse;
         }).catch(() => {
           // Falhou na rede? Tenta pegar do cache.
