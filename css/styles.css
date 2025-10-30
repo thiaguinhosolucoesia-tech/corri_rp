@@ -129,8 +129,8 @@ html, body {
     font-size: 0.9em;
     border-top: 1px solid #444;
     
-    /* --- Correção Layout Flex --- */
-    /* margin-top: auto; */ /* REMOVIDO V9.9 */
+    /* --- Correção Layout Flex V9.9 --- */
+    margin-top: auto; /* *IMPORTANTE* Empurra o rodapé para o fim se o conteúdo for CURTO */
     flex-shrink: 0; /* Impede o rodapé de encolher */
 }
 
