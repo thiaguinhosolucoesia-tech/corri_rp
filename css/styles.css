@@ -1,5 +1,6 @@
 /* ================================================= */
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
+/* V9.4 - CORREÇÃO ROLAGEM MOBILE + ANIMAÇÃO         */
 /* ================================================= */
 * {
     margin: 0;
@@ -8,22 +9,36 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
+/* * CORREÇÃO V9.4: Garante que a PÁGINA possa rolar 
+ * Isso corrige o corte no mobile.
+*/
+html, body {
     background: linear-gradient(135deg, #1f2027 0%, #3a3a52 100%);
-    min-height: 100vh;
+    min-height: 100%; /* Garante que ocupe a altura toda, mas possa crescer */
     padding: 0;
     color: #f0f0f0;
+    overflow-x: hidden; /* Impede rolagem horizontal */
+    overflow-y: auto;   /* Permite rolagem vertical */
 }
 
+/* * CORREÇÃO V9.4: Ajustado para layout flex (empurrar footer)
+ * sem quebrar a animação de recolher.
+*/
 .container {
     max-width: 1400px;
     margin: 20px auto;
     background: rgba(42, 42, 58, 0.85);
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
+    /* overflow: hidden; */ /* REMOVIDO - Esta era a causa do corte no mobile */
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(8px);
+
+    /* --- Correção Layout Flex --- */
+    display: flex;
+    flex-direction: column;
+    /* Garante que o container tenha no mínimo a altura da tela menos as margens */
+    min-height: calc(100vh - 40px); 
 }
 
 /* ================================================= */
@@ -36,6 +51,7 @@ body {
     text-align: center;
     position: relative;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0; /* Impede o header de encolher */
 }
 
 #profile-header-info {
@@ -113,6 +129,10 @@ body {
     padding: 20px;
     font-size: 0.9em;
     border-top: 1px solid #444;
+    
+    /* --- Correção Layout Flex --- */
+    margin-top: auto; /* Empurra o rodapé para o fim do .container */
+    flex-shrink: 0; /* Impede o rodapé de encolher */
 }
 
 .footer a {
@@ -273,6 +293,7 @@ body {
     padding: 40px 30px;
     background: #1a1a2e;
     text-align: center;
+    flex-grow: 1; /* Faz esta seção crescer se for a única visível */
 }
 #pending-approval-view, #rejected-view {
      padding: 60px 30px;
@@ -361,6 +382,7 @@ body {
     background: #ffc107;
     color: #1f2027;
     border-bottom: 2px solid #e0a800;
+    flex-shrink: 0; /* Impede de encolher */
 }
 #admin-panel h2 {
     text-align: center;
@@ -700,8 +722,8 @@ body {
 @media (max-width: 768px) {
     /* Layout Geral */
     .container {
-        margin: 0;
-        border-radius: 0;
+        /* margin: 0; */ /* Removido para manter a correção de min-height calc() */
+        /* border-radius: 0; */ /* Removido para manter a correção de min-height calc() */
     }
     .content {
         padding: 15px;
@@ -829,6 +851,7 @@ body {
     text-align: center;
     background: #1f2027;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-grow: 1; /* Faz esta seção crescer se for a única visível */
 }
 #public-view h2 {
     color: #c5cae9;
@@ -892,6 +915,7 @@ body {
     padding: 20px 30px;
     background: #1f2027;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0; /* Impede de encolher */
 }
 .public-profile-list-section .section-title {
     font-size: 1.8em;
@@ -908,11 +932,13 @@ body {
 /* ================================================= */
 #user-content {
     /* Esta view só é mostrada quando logada */
+    flex-grow: 1; /* CORREÇÃO V9.4: Faz o conteúdo crescer e empurrar o footer */
 }
 .dashboard-section {
     padding: 30px;
     background: rgba(20, 20, 30, 0.5);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0; /* Impede de encolher */
 }
 .dashboard-header {
     text-align: center;
@@ -980,6 +1006,7 @@ body {
     padding: 20px 30px;
     text-align: center;
     background: #1a1a2e;
+    flex-shrink: 0; /* Impede de encolher */
 }
 .btn-add {
     padding: 15px 30px;
@@ -1001,6 +1028,7 @@ body {
 .history-section {
     padding: 30px;
     background: transparent;
+    flex-shrink: 0; /* Impede de encolher */
 }
 .year-group {
     margin-bottom: 30px;
@@ -1149,7 +1177,10 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 /* ================================================= */
 /* SEÇÃO DE CALENDÁRIO PÚBLICO (V2)                  */
 /* ================================================= */
-.public-calendar-section { padding: 30px; }
+.public-calendar-section { 
+    padding: 30px; 
+    flex-shrink: 0; /* Impede de encolher */
+}
 .section-title { font-size: 2.25rem; font-weight: 800; text-align: center; margin-bottom: 3rem; color: white; }
 .text-blue-highlight { color: #60a5fa; }
 .calendar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 40px; }
@@ -1305,6 +1336,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 /* --- Seção de Comentários (Corrida e Perfil) --- */
 .race-card-comments, .profile-comments-section {
     padding: 20px; background: #1f2027; border-top: 1px solid #444;
+    flex-shrink: 0; /* Impede de encolher */
 }
 .profile-comments-section { border-radius: 0 0 20px 20px; } /* Ajuste borda container */
 .comments-title { font-size: 1.1em; color: #c5cae9; margin-bottom: 15px; font-weight: 600; }
@@ -1376,8 +1408,14 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 }
 
 @media (max-width: 768px) {
-    body { padding: 0; }
-    .container { margin: 0; border-radius: 0; border: none; min-height: 100vh; }
+    /* body { padding: 0; } */ /* Removido, já está em html, body */
+    .container { 
+        margin: 0; 
+        border-radius: 0; 
+        border: none; 
+        min-height: 100vh; /* Garante que no mobile o container sempre ocupe a tela toda */
+        width: 100%; /* Garante que o container use 100% da largura */
+    }
     .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
     #login-form { max-width: 100%; }
     #btn-back-to-public, #btn-back-to-my-dashboard { top: 10px; left: 10px; padding: 6px 8px; font-size: 0.8em; }
@@ -1399,4 +1437,69 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     .lightbox-nav-btn { font-size: 2rem; padding: 5px 10px; } /* Menores botões lightbox */
     .lightbox-close-btn { font-size: 2rem; top: 10px; right: 10px; }
     #lightbox-caption { font-size: 0.8em; bottom: 10px; }
+}
+
+
+/* ================================================= */
+/* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
+/* ================================================= */
+
+.section-header-collapsible {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Mantém o espaçamento original do título */
+    cursor: pointer; /* Indica que o cabeçalho é clicável */
+    padding: 10px 0; /* Adiciona um pouco de padding para área de clique */
+}
+
+.section-header-collapsible .dashboard-header {
+    margin-bottom: 0; /* Remove a margem inferior do H2 */
+    border-bottom: none; /* Remove a borda inferior do H2 */
+    padding-bottom: 0; /* Remove o padding inferior do H2 */
+}
+
+.btn-toggle-section {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #c5cae9;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6em; /* Tamanho do ícone */
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s ease;
+}
+
+.btn-toggle-section:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.collapsible-content {
+    max-height: 10000px; /* Um valor grande para garantir que não corte o conteúdo */
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.3s ease-out, margin-top 0.5s ease-out;
+    opacity: 1;
+    margin-top: 0; /* Espaçamento normal quando expandido */
+}
+
+.collapsible-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: -20px; /* Reduz espaço extra quando recolhido */
+    /* A transição fará a animação de recolher/expandir */
+}
+
+/* Rotação do ícone do botão */
+.btn-toggle-section i.bx-chevron-down {
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
+}
+
+.btn-toggle-section i.bx-chevron-up {
+    transform: rotate(180deg); /* Rotação para indicar "recolhido" */
+    transition: transform 0.3s ease;
 }
