@@ -1,5 +1,5 @@
 // Define o nome do cache
-const CACHE_NOME = 'curriculo-corredores-v5'; // ATUALIZADO para v5
+const CACHE_NOME = 'curriculo-corredores-v9.9'; // ATUALIZADO para v9.9 (Limpa cache antigo)
 
 // Lista de arquivos exatos do seu projeto para o App Shell
 const listaUrlsParaCache = [
@@ -17,35 +17,31 @@ const listaUrlsParaCache = [
 
 // Evento 'install': Salva os arquivos do App Shell no cache
 self.addEventListener('install', (event) => {
-  console.log('[ServiceWorker] Instalando (v5)...'); // Log atualizado
+  console.log(`[ServiceWorker] Instalando (${CACHE_NOME})...`);
   event.waitUntil(
     caches.open(CACHE_NOME)
       .then((cache) => {
-        console.log('[ServiceWorker] Abrindo cache e salvando o App Shell (v5)'); // Log atualizado
-        // Importante: Limpar o cache antigo ANTES de adicionar o novo
-        // para garantir que a rede seja usada se addAll falhar parcialmente.
-        // Ou podemos confiar na fase 'activate' para limpar depois.
-        // Mantendo como está por enquanto, mas ciente do risco.
+        console.log(`[ServiceWorker] Abrindo cache e salvando o App Shell (${CACHE_NOME})`);
         return cache.addAll(listaUrlsParaCache);
       })
       .then(() => {
-        console.log('[ServiceWorker] Instalação completa (v5), App Shell cacheado.'); // Log atualizado
+        console.log(`[ServiceWorker] Instalação completa (${CACHE_NOME}), App Shell cacheado.`);
         return self.skipWaiting(); // Força o novo SW a ativar
       })
       .catch((error) => {
-        console.error('[ServiceWorker] Falha ao cachear o App Shell (v5):', error); // Log atualizado
+        console.error(`[ServiceWorker] Falha ao cachear o App Shell (${CACHE_NOME}):`, error);
       })
   );
 });
 
 // Evento 'activate': Limpa caches antigos
 self.addEventListener('activate', (event) => {
-  console.log('[ServiceWorker] Ativando (v5)...'); // Log atualizado
+  console.log(`[ServiceWorker] Ativando (${CACHE_NOME})...`);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          // Deleta caches que não sejam o cache atual (v5)
+          // Deleta caches que não sejam o cache atual
           if (cacheName !== CACHE_NOME) {
             console.log('[ServiceWorker] Limpando cache antigo:', cacheName);
             return caches.delete(cacheName);
@@ -53,7 +49,7 @@ self.addEventListener('activate', (event) => {
         })
       );
     }).then(() => {
-        console.log('[ServiceWorker] Ativado (v5) e pronto para controlar a página.'); // Log atualizado
+        console.log(`[ServiceWorker] Ativado (${CACHE_NOME}) e pronto para controlar a página.`);
         return self.clients.claim(); // Torna-se o SW controlador imediatamente
     })
   );
@@ -69,46 +65,39 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.match(event.request)
         .then((response) => {
-          // Se encontrou no cache, retorna
           if (response) {
             return response;
           }
-          // Se não encontrou, busca na rede
           return fetch(event.request).then((networkResponse) => {
-              // Clona a resposta para poder salvar no cache E retornar ao navegador
               const responseToCache = networkResponse.clone();
               caches.open(CACHE_NOME)
                 .then((cache) => {
-                  // Adiciona a resposta da rede ao cache
                   cache.put(event.request, responseToCache);
                 });
-              // Retorna a resposta original da rede
               return networkResponse;
             }
           ).catch((error) => {
-            // Tratamento de erro caso a rede falhe e não haja nada no cache
-            console.error('[ServiceWorker] Falha no fetch (App Shell) - Cache Miss e Network Error:', error);
-            // Poderia retornar uma página offline padrão aqui, se tivesse uma
+            console.error('[ServiceWorker] Falha no fetch (App Shell):', error);
           });
         })
     );
   } else {
-    // Para requisições de terceiros (Firebase, CDNs, Cloudinary, Boxicons)
-    // Estratégia: Network first, fallback to cache (Stale-While-Revalidate implícito)
+    // Para requisições de terceiros (Firebase, CDNs, Cloudinary)
+    // Estratégia: Network first, fallback to cache
     event.respondWith(
       caches.open(CACHE_NOME).then((cache) => {
-        // Tenta buscar primeiro na rede
         return fetch(event.request).then((networkResponse) => {
-          // Salva a resposta da rede no cache para futuras requisições offline
-          cache.put(event.request, networkResponse.clone());
-          // Retorna a resposta da rede
+          
+          // *** CORREÇÃO V9.9: SÓ SALVA NO CACHE SE FOR GET ***
+          // Impede o erro "Request method 'POST' is unsupported"
+          if (event.request.method === 'GET') {
+            cache.put(event.request, networkResponse.clone());
+          }
+          
           return networkResponse;
         }).catch(() => {
-          // Se a rede falhar, tenta pegar do cache
-          return cache.match(event.request).then(response => {
-              // Retorna do cache se encontrado, senão falha (não há fallback offline padrão aqui)
-              return response;
-          });
+          // Falhou na rede? Tenta pegar do cache.
+          return cache.match(event.request);
         });
       })
     );
