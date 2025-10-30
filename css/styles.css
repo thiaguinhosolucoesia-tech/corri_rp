@@ -1,6 +1,6 @@
 /* ================================================= */
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
-/* V9.7 - CORREÇÃO FINAL ROLAGEM + ANIMAÇÃO PADDING  */
+/* V9.9 - CORREÇÃO FINAL LAYOUT (CAMPO PRETO)        */
 /* ================================================= */
 * {
     margin: 0;
@@ -14,14 +14,15 @@
 */
 html, body {
     background: linear-gradient(135deg, #1f2027 0%, #3a3a52 100%);
-    min-height: 100%; /* Garante que ocupe a altura toda, mas possa crescer */
+    min-height: 100%; /* Garante que o fundo ocupe a altura toda */
     padding: 0;
     color: #f0f0f0;
     overflow-x: hidden; /* Impede rolagem horizontal */
     overflow-y: auto;   /* Permite rolagem vertical */
 }
 
-/* * CORREÇÃO V9.4: Ajustado para layout flex (empurrar footer)
+/* * CORREÇÃO V9.9: Removido min-height 
+ * O container agora cresce e encolhe com o conteúdo.
 */
 .container {
     max-width: 1400px;
@@ -36,8 +37,7 @@ html, body {
     /* --- Correção Layout Flex --- */
     display: flex;
     flex-direction: column;
-    /* Garante que o container tenha no mínimo a altura da tela menos as margens */
-    min-height: calc(100vh - 40px); 
+    /* min-height: calc(100vh - 40px); */ /* REMOVIDO V9.9 - Causa do "Campo Preto" */
 }
 
 /* ================================================= */
@@ -130,7 +130,7 @@ html, body {
     border-top: 1px solid #444;
     
     /* --- Correção Layout Flex --- */
-    margin-top: auto; /* Empurra o rodapé para o fim do .container */
+    /* margin-top: auto; */ /* REMOVIDO V9.9 */
     flex-shrink: 0; /* Impede o rodapé de encolher */
 }
 
@@ -292,7 +292,7 @@ html, body {
     padding: 40px 30px;
     background: #1a1a2e;
     text-align: center;
-    flex-grow: 1; /* Faz esta seção crescer se for a única visível */
+    /* flex-grow: 1; */ /* REMOVIDO V9.9 */
 }
 #pending-approval-view, #rejected-view {
      padding: 60px 30px;
@@ -850,7 +850,7 @@ html, body {
     text-align: center;
     background: #1f2027;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    flex-grow: 1; /* Faz esta seção crescer se for a única visível */
+    /* flex-grow: 1; */ /* REMOVIDO V9.9 */
 }
 #public-view h2 {
     color: #c5cae9;
@@ -929,9 +929,11 @@ html, body {
 /* ================================================= */
 /* DASHBOARD DO USUÁRIO (V1)                         */
 /* ================================================= */
+
+/* *** CORREÇÃO V9.8: REMOVIDO 'flex-grow: 1' DAQUI *** */
 #user-content {
     /* Esta view só é mostrada quando logada */
-    flex-grow: 1; /* CORREÇÃO V9.4: Faz o conteúdo crescer e empurrar o footer */
+    /* flex-grow: 1; */ /* REMOVIDO V9.9 */
 }
 .dashboard-section {
     padding: 30px;
@@ -1436,6 +1438,18 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     .lightbox-nav-btn { font-size: 2rem; padding: 5px 10px; } /* Menores botões lightbox */
     .lightbox-close-btn { font-size: 2rem; top: 10px; right: 10px; }
     #lightbox-caption { font-size: 0.8em; bottom: 10px; }
+
+    /* CORREÇÃO V9.7: Ajuste de padding no mobile para header colapsável */
+    .section-header-collapsible {
+        padding: 10px 15px 0 15px; /* Padding menor no mobile */
+    }
+    .collapsible-content {
+        padding: 15px; /* Padding menor no mobile */
+    }
+    .collapsible-content.collapsed {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
 }
 
 
