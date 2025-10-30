@@ -356,7 +356,7 @@ html, body {
     background: #ffc107;
     color: #1f2027;
     border-bottom: 2px solid #e0a800;
-    flex-shrink: 0; /* Impede de encolher (ESTE FICA, pois usa display:none) */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 #admin-panel h2 {
     text-align: center;
@@ -450,7 +450,7 @@ html, body {
     gap: 10px;
     flex-wrap: nowrap; /* Evita que botões quebrem linha */
     justify-content: flex-end;
-    flex-shrink: 0; /* Impede que botões encolham */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .btn-approve, .btn-edit-user, .btn-reject, .btn-delete-user {
     padding: 8px 15px;
