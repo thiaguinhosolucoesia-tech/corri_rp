@@ -1,6 +1,6 @@
 /* ================================================= */
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
-/* V9.9 - CORREÇÃO FINAL LAYOUT (CAMPO PRETO)        */
+/* V9.11 - CORREÇÃO FINAL LAYOUT (CAMPO PRETO)       */
 /* ================================================= */
 * {
     margin: 0;
@@ -21,7 +21,7 @@ html, body {
     overflow-y: auto;   /* Permite rolagem vertical */
 }
 
-/* * CORREÇÃO V9.9: Removido min-height 
+/* * CORREÇÃO V9.11: Removido min-height 
  * O container agora cresce e encolhe com o conteúdo.
 */
 .container {
@@ -37,7 +37,7 @@ html, body {
     /* --- Correção Layout Flex --- */
     display: flex;
     flex-direction: column;
-    /* min-height: calc(100vh - 40px); */ /* REMOVIDO V9.9 - Causa do "Campo Preto" */
+    /* min-height: calc(100vh - 40px); */ /* REMOVIDO V9.11 - Causa do "Campo Preto" */
 }
 
 /* ================================================= */
