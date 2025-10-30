@@ -1,6 +1,6 @@
 /* ================================================= */
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
-/* V11 - CORREÇÃO FINAL LAYOUT (CAMPO PRETO)         */
+/* V12 - CORREÇÃO FINAL flex-shrink (CAMPO PRETO)    */
 /* ================================================= */
 * {
     margin: 0;
@@ -50,7 +50,7 @@ html, body {
     text-align: center;
     position: relative;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-    flex-shrink: 0; /* Impede o header de encolher */
+    flex-shrink: 0; /* Impede o header de encolher (ESTE FICA) */
 }
 
 #profile-header-info {
@@ -131,7 +131,7 @@ html, body {
     
     /* --- Correção Layout Flex V11 --- */
     margin-top: auto; /* Empurra o rodapé para o fim se o conteúdo for CURTO */
-    flex-shrink: 0; /* Impede o rodapé de encolher */
+    flex-shrink: 0; /* Impede o rodapé de encolher (ESTE FICA) */
 }
 
 .footer a {
@@ -292,7 +292,7 @@ html, body {
     padding: 40px 30px;
     background: #1a1a2e;
     text-align: center;
-    /* flex-grow: 1; */ /* REMOVIDO V11 - Causa do "Campo Preto" */
+    /* flex-grow: 1; */ /* REMOVIDO V11 */
 }
 #pending-approval-view, #rejected-view {
      padding: 60px 30px;
@@ -381,7 +381,7 @@ html, body {
     background: #ffc107;
     color: #1f2027;
     border-bottom: 2px solid #e0a800;
-    flex-shrink: 0; /* Impede de encolher */
+    flex-shrink: 0; /* Impede de encolher (ESTE FICA, pois usa display:none) */
 }
 #admin-panel h2 {
     text-align: center;
@@ -850,7 +850,7 @@ html, body {
     text-align: center;
     background: #1f2027;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    /* flex-grow: 1; */ /* REMOVIDO V11 - Causa do "Campo Preto" */
+    /* flex-grow: 1; */ /* REMOVIDO V11 */
 }
 #public-view h2 {
     color: #c5cae9;
