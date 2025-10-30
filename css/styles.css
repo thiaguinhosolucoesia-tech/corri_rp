@@ -963,6 +963,9 @@ html, body {
     /* padding: 30px; */ /* <-- REMOVIDO V9.7 */
     /* background: transparent; */ /* <-- REMOVIDO V9.7 */
     /* flex-shrink: 0; */ /* REMOVIDO V11 */
+    /* --- CORREÇÃO V13: Removido height/min-height --- */
+    /* height: auto; */ /* Se estiver definido, remova */
+    /* min-height: 0; */ /* Se estiver definido, remova */
 }
 .year-group {
     margin-bottom: 30px;
