@@ -1,5 +1,5 @@
 // Define o nome do cache
-const CACHE_NOME = 'curriculo-corredores-v9.9'; // ATUALIZADO para v9.9 (Limpa cache antigo)
+const CACHE_NOME = 'curriculo-corredores-v9.10'; // ATUALIZADO para v9.10 (Limpa cache antigo)
 
 // Lista de arquivos exatos do seu projeto para o App Shell
 const listaUrlsParaCache = [
@@ -88,7 +88,7 @@ self.addEventListener('fetch', (event) => {
       caches.open(CACHE_NOME).then((cache) => {
         return fetch(event.request).then((networkResponse) => {
           
-          // *** CORREÇÃO V9.9: SÓ SALVA NO CACHE SE FOR GET ***
+          // *** CORREÇÃO V9.10: SÓ SALVA NO CACHE SE FOR GET ***
           // Impede o erro "Request method 'POST' is unsupported"
           if (event.request.method === 'GET') {
             cache.put(event.request, networkResponse.clone());
