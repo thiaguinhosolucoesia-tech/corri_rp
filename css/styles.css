@@ -1,6 +1,6 @@
 /* ================================================= */
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
-/* V9.5 - CORREÇÃO ROLAGEM MOBILE + ANIMAÇÃO GRID    */
+/* V9.7 - CORREÇÃO FINAL ROLAGEM + ANIMAÇÃO PADDING  */
 /* ================================================= */
 * {
     margin: 0;
@@ -1025,8 +1025,8 @@ html, body {
 
 /* Histórico de Corrida Pessoal (V1 + V6 + V7/8) */
 .history-section {
-    padding: 30px;
-    background: transparent;
+    /* padding: 30px; */ /* <-- REMOVIDO V9.7 */
+    /* background: transparent; */ /* <-- REMOVIDO V9.7 */
     flex-shrink: 0; /* Impede de encolher */
 }
 .year-group {
@@ -1441,16 +1441,16 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 
 /* ================================================= */
 /* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
-/* V9.5 - ALTERADO PARA USAR GRID NO LUGAR DE MAX-HEIGHT */
+/* V9.7 - CORREÇÃO FINAL ANIMAÇÃO PADDING             */
 /* ================================================= */
 
 .section-header-collapsible {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px; /* Mantém o espaçamento original do título */
+    /* margin-bottom: 20px; */ /* REMOVIDO V9.7 - A margem/padding está no collapsible agora */
     cursor: pointer; /* Indica que o cabeçalho é clicável */
-    padding: 10px 0; /* Adiciona um pouco de padding para área de clique */
+    padding: 10px 30px 0 30px; /* Ajustado para alinhar com o padding do conteúdo */
 }
 
 .section-header-collapsible .dashboard-header {
@@ -1478,28 +1478,31 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* --- CORREÇÃO V9.5: Animação com Grid --- */
+/* --- CORREÇÃO V9.7: Animação com Grid + Padding --- */
 .collapsible-content {
     display: grid;
     /* Inicia com 1fr (uma fração, ou seja, altura total do conteúdo) */
     grid-template-rows: 1fr; 
-    transition: grid-template-rows 0.4s ease-out, opacity 0.3s ease-out;
+    /* Transição para a altura do grid E o padding */
+    transition: grid-template-rows 0.4s ease-out, padding 0.4s ease-out, opacity 0.3s ease-out;
     opacity: 1;
-    /* Remove transições de max-height e margin-top */
+    
+    /* Padding e background movidos para cá (de .history-section) */
+    padding: 30px;
+    background: transparent;
 }
 
 .collapsible-content.collapsed {
     /* Anima para 0fr (altura zero) */
     grid-template-rows: 0fr; 
     opacity: 0;
-    /* Remove margin-top negativo */
+    
+    /* Remove o padding quando recolhido */
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
-/* * CHAVE DA CORREÇÃO V9.5: 
- * O conteúdo *direto* dentro do grid animado 
- * (no seu caso, os .loader ou .year-group dentro do #history-container)
- * precisa ter overflow: hidden para a animação de grid funcionar.
-*/
+/* Esta regra é essencial para a animação do grid funcionar */
 .collapsible-content > * {
     overflow: hidden;
 }
