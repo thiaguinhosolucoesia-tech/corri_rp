@@ -1,6 +1,6 @@
 /* ================================================= */
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
-/* V14 - CORREÇÃO FINAL LAYOUT (CAMPO PRETO)         */
+/* V12 - CORREÇÃO FINAL flex-shrink (CAMPO PRETO)    */
 /* ================================================= */
 * {
     margin: 0;
@@ -8,7 +8,6 @@
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
 /* * CORREÇÃO V9.4: Garante que a PÁGINA possa rolar 
  * Isso corrige o corte no mobile.
 */
@@ -20,8 +19,7 @@ html, body {
     overflow-x: hidden; /* Impede rolagem horizontal */
     overflow-y: auto;   /* Permite rolagem vertical */
 }
-
-/* * CORREÇÃO V14: Removido min-height 
+/* * CORREÇÃO V11: Removido min-height 
  * O container agora cresce e encolhe com o conteúdo.
 */
 .container {
@@ -33,13 +31,11 @@ html, body {
     /* overflow: hidden; */ /* REMOVIDO - Esta era a causa do corte no mobile */
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(8px);
-
     /* --- Correção Layout Flex --- */
     display: flex;
     flex-direction: column;
-    /* min-height: calc(100vh - 40px); */ /* REMOVIDO V14 - Causa do "Campo Preto" */
+    /* min-height: calc(100vh - 40px); */ /* REMOVIDO - CAUSA O CAMPO PRETO */
 }
-
 /* ================================================= */
 /* CABEÇALHO (HEADER - V5)                           */
 /* ================================================= */
@@ -52,11 +48,9 @@ html, body {
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
     flex-shrink: 0; /* Impede o header de encolher (ESTE FICA) */
 }
-
 #profile-header-info {
     margin-bottom: 15px; /* Espaço antes do botão Editar */
 }
-
 .header-profile-pic {
     width: 80px;
     height: 80px;
@@ -68,20 +62,17 @@ html, body {
     object-fit: cover; /* Garante que a imagem cubra o espaço */
     background-color: #3a3a52; /* Cor de fundo caso imagem falhe */
 }
-
 .header h1 {
     font-size: 2.2em; /* Ligeiramente menor */
     margin-bottom: 5px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
-
 #header-subtitle { /* Nomes dos Corredores */
     font-size: 1.2em;
     font-weight: 600;
     opacity: 0.9;
     margin-bottom: 8px;
 }
-
 .header-sub-info { /* Bio e Localização */
     font-size: 0.95em;
     opacity: 0.8;
@@ -94,7 +85,6 @@ html, body {
 #header-location::before {
     content: '📍 ';
 }
-
 #btn-edit-profile {
     position: absolute;
     bottom: 15px; /* Posicionado embaixo */
@@ -107,12 +97,9 @@ html, body {
 #btn-edit-profile:hover {
      background: rgba(255, 255, 255, 0.4);
 }
-
-
 .hidden {
     display: none !important;
 }
-
 .loader {
     padding: 40px;
     text-align: center;
@@ -120,7 +107,6 @@ html, body {
     color: #c5cae9;
     font-weight: 600;
 }
-
 .footer {
     background: #1f2027;
     color: #aaa;
@@ -128,12 +114,10 @@ html, body {
     padding: 20px;
     font-size: 0.9em;
     border-top: 1px solid #444;
-    
     /* --- Correção Layout Flex V11 --- */
     margin-top: auto; /* Empurra o rodapé para o fim se o conteúdo for CURTO */
     flex-shrink: 0; /* Impede o rodapé de encolher (ESTE FICA) */
 }
-
 .footer a {
     color: #aaa;
     text-decoration: none;
@@ -142,11 +126,9 @@ html, body {
 .footer a:hover {
     color: #667eea;
 }
-
 /* ================================================= */
 /* COMPONENTES UNIFICADOS (Botões, Formulários)      */
 /* ================================================= */
-
 /* Botões Genéricos */
 .btn {
     padding: 12px 25px;
@@ -157,7 +139,6 @@ html, body {
     cursor: pointer;
     transition: all 0.3s ease;
 }
-
 .btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -170,7 +151,6 @@ html, body {
     cursor: not-allowed;
     opacity: 0.7;
 }
-
 .btn-secondary {
     background: #6c757d;
     color: white;
@@ -178,7 +158,6 @@ html, body {
 .btn-secondary:hover {
     background: #5a6268;
 }
-
 /* Botões de Auth (Cabeçalho V1) */
 .auth-controls {
     position: absolute;
@@ -188,7 +167,6 @@ html, body {
     gap: 10px;
     align-items: center;
 }
-
 .auth-btn {
     padding: 8px 15px;
     background: rgba(255, 255, 255, 0.2);
@@ -221,7 +199,6 @@ html, body {
 #btn-back-to-my-dashboard:hover {
      background: rgba(0, 0, 0, 0.4);
 }
-
 /* Forms Genéricos (V1 + V2 + V5) */
 .form-group {
     display: flex;
@@ -284,7 +261,6 @@ html, body {
     font-size: 1em;
     color: #c5cae9;
 }
-
 /* ================================================= */
 /* SEÇÃO DE LOGIN / CADASTRO (V1)                    */
 /* ================================================= */
@@ -292,7 +268,7 @@ html, body {
     padding: 40px 30px;
     background: #1a1a2e;
     text-align: center;
-    /* flex-grow: 1; */ /* REMOVIDO V14 - Causa do "Campo Preto" */
+    /* flex-grow: 1; */ /* REMOVIDO - CAUSA O CAMPO PRETO */
 }
 #pending-approval-view, #rejected-view {
      padding: 60px 30px;
@@ -372,7 +348,6 @@ html, body {
     background: #ffc107;
     color: #1f2027;
 }
-
 /* ================================================= */
 /* SEÇÃO DE PAINEL DE ADMIN (V1 + V2)                */
 /* ================================================= */
@@ -390,7 +365,6 @@ html, body {
     font-weight: 700;
     position: relative;
 }
-
 #admin-toggle-btn {
     position: absolute;
     top: 50%;
@@ -413,7 +387,6 @@ html, body {
 #admin-panel.collapsed #admin-panel-content {
     display: none;
 }
-
 #admin-panel h3 {
     text-align: center;
     margin-top: 25px;
@@ -440,7 +413,6 @@ html, body {
     text-align: left;
     color: #1f2027;
 }
-
 /* Admin V1 - Gestão de Usuários */
 #pending-list, #approved-list {
     display: grid;
@@ -496,7 +468,6 @@ html, body {
 .btn-edit-user:hover { background: #0056b3; }
 .btn-reject, .btn-delete-user { background: #dc3545; }
 .btn-reject:hover, .btn-delete-user:hover { background: #c82333; }
-
 /* Admin V2 - Gestão de Corridas */
 .form-buttons-inline {
     display: flex;
@@ -551,12 +522,9 @@ html, body {
 .upload-status.text-green-500, .upload-status.success { color: #28a745; }
 .upload-status.text-red-500, .upload-status.error { color: #dc3545; }
 .upload-status.text-yellow-500, .upload-status.loading { color: #ffc107; }
-
-
 /* ================================================= */
 /* SEÇÃO DE PERFIL PÚBLICO (V1)                      */
 /* ================================================= */
-
 /* ================================================= */
 /* SEÇÃO DE MESSENGER (V9)                           */
 /* ================================================= */
@@ -566,13 +534,11 @@ html, body {
     height: 90%;
     max-height: 700px;
 }
-
 .messenger-body {
     display: flex;
     height: calc(100% - 70px); /* Altura total - altura do header */
     border-top: 1px solid #444;
 }
-
 .chat-list-container {
     width: 300px;
     min-width: 250px;
@@ -580,19 +546,16 @@ html, body {
     border-right: 1px solid #444;
     overflow-y: auto;
 }
-
 .chat-list-container h3 {
     margin-top: 0;
     margin-bottom: 15px;
     color: #c5cae9;
 }
-
 .chat-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
-
 .chat-item {
     display: flex;
     align-items: center;
@@ -602,54 +565,44 @@ html, body {
     cursor: pointer;
     transition: background 0.2s ease;
 }
-
 .chat-item:hover {
     background: #333345;
 }
-
 .chat-item.active {
     background: #667eea;
     color: white;
 }
-
 .chat-item-info {
     flex-grow: 1;
     margin-left: 10px;
 }
-
 .chat-item-info strong {
     display: block;
     font-size: 1em;
 }
-
 .chat-item-info span {
     font-size: 0.8em;
     color: #b0b0b0;
 }
-
 .chat-item.active .chat-item-info span {
     color: #e0e0e0;
 }
-
 .chat-window-container {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
 }
-
 .chat-header {
     display: flex;
     align-items: center;
     padding: 10px 15px;
     border-bottom: 1px solid #444;
 }
-
 .chat-header h3 {
     margin: 0;
     margin-left: 10px;
     font-size: 1.2em;
 }
-
 #btn-back-to-chats {
     background: none;
     border: none;
@@ -657,7 +610,6 @@ html, body {
     cursor: pointer;
     color: #c5cae9;
 }
-
 .messages-container {
     flex-grow: 1;
     padding: 15px;
@@ -666,7 +618,6 @@ html, body {
     flex-direction: column;
     gap: 10px;
 }
-
 .message {
     max-width: 70%;
     padding: 8px 12px;
@@ -674,21 +625,18 @@ html, body {
     line-height: 1.4;
     word-wrap: break-word;
 }
-
 .message-received {
     align-self: flex-start;
     background: #444;
     color: white;
     border-bottom-left-radius: 2px;
 }
-
 .message-sent {
     align-self: flex-end;
     background: #667eea;
     color: white;
     border-bottom-right-radius: 2px;
 }
-
 .message-time {
     display: block;
     font-size: 0.7em;
@@ -696,19 +644,16 @@ html, body {
     text-align: right;
     color: rgba(255, 255, 255, 0.7);
 }
-
 .chat-form {
     display: flex;
     padding: 10px 15px;
     border-top: 1px solid #444;
     gap: 10px;
 }
-
 .chat-form input {
     flex-grow: 1;
     margin-bottom: 0;
 }
-
 .no-chat-selected {
     flex-grow: 1;
     display: flex;
@@ -717,7 +662,6 @@ html, body {
     text-align: center;
     color: #b0b0b0;
 }
-
 @media (max-width: 768px) {
     /* Layout Geral */
     .container {
@@ -727,7 +671,6 @@ html, body {
     .content {
         padding: 15px;
     }
-
     /* Cabeçalho */
     .header {
         padding: 15px 10px 25px 10px;
@@ -756,7 +699,6 @@ html, body {
         padding: 6px 10px;
         font-size: 0.8em;
     }
-
     /* Login/Cadastro */
     #login-view {
         padding: 20px 15px;
@@ -764,7 +706,6 @@ html, body {
     .login-buttons {
         flex-direction: column;
     }
-
     /* Dashboard */
     .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -779,7 +720,6 @@ html, body {
     .stat-label {
         font-size: 0.7em;
     }
-
     /* Histórico de Corridas */
     .race-card {
         padding: 15px;
@@ -803,7 +743,6 @@ html, body {
     .like-section {
         margin-bottom: 5px;
     }
-
     /* Admin Panel */
     .admin-grid {
         grid-template-columns: 1fr;
@@ -820,7 +759,6 @@ html, body {
         width: 100%;
         justify-content: space-between;
     }
-
     /* Messenger */
     .messenger-modal {
         width: 100%;
@@ -850,7 +788,7 @@ html, body {
     text-align: center;
     background: #1f2027;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    /* flex-grow: 1; */ /* REMOVIDO V11 */
+    /* flex-grow: 1; */ /* REMOVIDO V11 - Causa do "Campo Preto" */
 }
 #public-view h2 {
     color: #c5cae9;
@@ -909,7 +847,6 @@ html, body {
     color: #b0b0b0;
     margin-top: 5px;
 }
-
 .public-profile-list-section {
     padding: 20px 30px;
     background: #1f2027;
@@ -925,11 +862,9 @@ html, body {
 .public-profile-list-section .profile-list {
     margin-bottom: 0;
 }
-
 /* ================================================= */
 /* DASHBOARD DO USUÁRIO (V1)                         */
 /* ================================================= */
-
 /* *** CORREÇÃO V11: REMOVIDO 'flex-grow: 1' DAQUI *** */
 #user-content {
     /* Esta view só é mostrada quando logada */
@@ -1001,7 +936,6 @@ html, body {
     color: #f06292;
     font-weight: 600;
 }
-
 /* Controles de Corrida Pessoal (V1) */
 .controls-section {
     padding: 20px 30px;
@@ -1024,7 +958,6 @@ html, body {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
 }
-
 /* Histórico de Corrida Pessoal (V1 + V6 + V7/8) */
 .history-section {
     /* padding: 30px; */ /* <-- REMOVIDO V9.7 */
@@ -1106,7 +1039,6 @@ html, body {
 .runner-time.skipped { color: #f44336; font-size: 1.1em; font-style: italic; }
 .runner-pace { font-size: 0.9em; color: #b0b0b0; font-family: monospace; }
 .runner-pace.goal { color: #ffeb3b; }
-
 .race-card-footer {
     padding: 10px 20px;
     background: #222230;
@@ -1132,7 +1064,6 @@ html, body {
     opacity: 0.6; transition: opacity 0.3s, color 0.3s; padding: 5px; line-height: 1;
 }
 .btn-control:hover { opacity: 1; }
-
 /* ================================================= */
 /* MODAIS (GERAL)                                    */
 /* ================================================= */
@@ -1158,7 +1089,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     padding: 20px 30px; background: #1f2027; border-top: 1px solid #444;
     display: flex; justify-content: flex-end; gap: 15px; flex-shrink: 0;
 }
-
 /* --- Modal Corrida Pessoal (#race-modal) --- */
 #race-modal .modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .form-group.checkbox {
@@ -1174,7 +1104,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 #btn-delete { background: #dc3545; color: white; margin-right: auto; }
 #btn-delete:hover { background: #c82333; }
 #btn-delete.hidden { display: none; }
-
 /* ================================================= */
 /* SEÇÃO DE CALENDÁRIO PÚBLICO (V2)                  */
 /* ================================================= */
@@ -1209,7 +1138,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .v2-inscricoes-button { background-color: #16a34a; color: white; }
 .v2-inscricoes-button:hover { background-color: #15803d; }
 .v2-race-button-disabled { background-color: #4b5563; color: #9ca3af; cursor: not-allowed; }
-
 /* ================================================= */
 /* MODAL DE RESULTADOS (V2)                          */
 /* ================================================= */
@@ -1240,11 +1168,9 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .v2-results-table th, .v2-results-table td { padding: 10px 15px; }
 .v2-results-table tbody tr { border-bottom: 1px solid #444; }
 .v2-results-table tbody tr:hover { background-color: #333345; }
-
 /* ================================================= */
 /* NOVOS ESTILOS: MÍDIA (FOTOS) V4 + V8              */
 /* ================================================= */
-
 /* --- Galeria no Card --- */
 .race-card-media { padding: 10px 20px 20px 20px; background: #222230; border-top: 1px solid #444; }
 .race-card-media h4 { font-size: 0.9em; color: #b0b0b0; font-weight: 600; margin-bottom: 10px; }
@@ -1254,14 +1180,12 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     cursor: pointer; transition: transform 0.2s, border-color 0.2s; display: block; /* Garante que não haja espaço extra */
 }
 .media-thumbnail:hover { transform: scale(1.05); border-color: #667eea; }
-
 /* --- Botão de Adicionar Mídia --- */
 .btn-add-media {
     background: #16a34a; color: white; border: none; border-radius: 8px; padding: 5px 10px; font-size: 1.1em;
     font-weight: 600; cursor: pointer; transition: background 0.3s; margin-left: 10px; line-height: 1;
 }
 .btn-add-media:hover { background: #15803d; }
-
 /* --- Modal de Mídia (#media-modal - V8 Múltiplos) --- */
 #media-modal .modal-body { display: block; }
 .media-preview-grid { /* V8 */
@@ -1276,7 +1200,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 4px; border: 1px solid #555;
 }
 #media-upload-status { margin-top: 15px; font-size: 1em; font-weight: 600; text-align: center; }
-
 /* ================================================= */
 /* NOVOS ESTILOS: MODAL EDIÇÃO PERFIL V5             */
 /* ================================================= */
@@ -1287,7 +1210,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 }
 #profile-edit-picture-preview { width: 100%; height: 100%; object-fit: cover; display: block; }
 #profile-picture-upload-status { margin-top: 10px; font-size: 0.9em; text-align: center; }
-
 /* ================================================= */
 /* NOVOS ESTILOS: CURTIDAS (LIKES) V6 + V7/8         */
 /* ================================================= */
@@ -1305,13 +1227,11 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .like-button.liked i { font-weight: bold; } /* Usa ícone bxs-heart */
 .like-button:disabled i { animation: spin 1s linear infinite; } /* Animação loading */
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
 .like-count {
     font-size: 0.9em; font-weight: 600; color: #c5cae9; cursor: pointer; /* V7/8 */
     transition: color 0.2s;
 }
 .like-count:hover { color: #fff; text-decoration: underline; } /* V7/8 */
-
 .likers-preview { /* V7/8 */ display: flex; align-items: center; }
 .liker-avatar {
     width: 24px; height: 24px; border-radius: 50%; border: 1px solid #555;
@@ -1322,15 +1242,12 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     font-size: 0.8em; color: #b0b0b0; margin-left: 5px; cursor: pointer;
 }
 .likers-more:hover { text-decoration: underline; }
-
 /* --- Modal Likers --- V7/8 */
 #likers-modal .modal-body { display: block; max-height: 60vh; }
 #likers-modal-list { display: flex; flex-direction: column; gap: 15px; }
 .liker-item { display: flex; align-items: center; gap: 10px; background: #333345; padding: 10px; border-radius: 8px; }
 .liker-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #555; }
 .liker-item span { font-weight: 600; color: #e0e0e0; }
-
-
 /* ================================================= */
 /* NOVOS ESTILOS: COMENTÁRIOS V7/8                   */
 /* ================================================= */
@@ -1353,14 +1270,11 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     background: none; border: none; color: #9ca3af; font-size: 0.8em; cursor: pointer; margin-left: 5px; opacity: 0.6;
 }
 .comment-delete-btn:hover { color: #ef4444; opacity: 1; }
-
 .comment-form { display: flex; gap: 10px; align-items: flex-start; }
 .comment-form textarea {
     flex-grow: 1; min-height: 40px; height: auto; resize: vertical; padding: 10px 15px; font-size: 0.95em;
 }
 .btn-comment { padding: 10px 20px; font-size: 0.95em; align-self: flex-end; /* Alinha botão com base do textarea */}
-
-
 /* ================================================= */
 /* NOVOS ESTILOS: LIGHTBOX V8                        */
 /* ================================================= */
@@ -1371,7 +1285,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
 }
 .lightbox-overlay:not(.hidden) { opacity: 1; pointer-events: auto; }
-
 #lightbox-image {
     max-width: 90%; max-height: 80%; object-fit: contain;
     border-radius: 5px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
@@ -1382,7 +1295,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     transition: color 0.2s;
 }
 .lightbox-close-btn:hover { color: white; }
-
 .lightbox-nav-btn {
     position: absolute; top: 50%; transform: translateY(-50%);
     background: rgba(255, 255, 255, 0.1); border: none; color: rgba(255, 255, 255, 0.7);
@@ -1393,21 +1305,17 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .lightbox-nav-btn.next { right: 15px; }
 .lightbox-nav-btn:hover { background: rgba(255, 255, 255, 0.2); color: white; }
 .lightbox-nav-btn.disabled { opacity: 0.3; cursor: default; pointer-events: none; }
-
 #lightbox-caption {
     position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.6); color: #eee; padding: 8px 15px; border-radius: 5px;
     font-size: 0.9em;
 }
-
-
 /* ================================================= */
 /* RESPONSIVIDADE (V1 + V2 + V5 + V6 + V7/8)         */
 /* ================================================= */
 @media (max-width: 900px) {
     .admin-grid { grid-template-columns: 1fr; }
 }
-
 @media (max-width: 768px) {
     /* body { padding: 0; } */ /* Removido, já está em html, body */
     .container { 
@@ -1438,7 +1346,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     .lightbox-nav-btn { font-size: 2rem; padding: 5px 10px; } /* Menores botões lightbox */
     .lightbox-close-btn { font-size: 2rem; top: 10px; right: 10px; }
     #lightbox-caption { font-size: 0.8em; bottom: 10px; }
-
     /* CORREÇÃO V9.7: Ajuste de padding no mobile para header colapsável */
     .section-header-collapsible {
         padding: 10px 15px 0 15px; /* Padding menor no mobile */
@@ -1451,13 +1358,10 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
         padding-bottom: 0;
     }
 }
-
-
 /* ================================================= */
 /* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
 /* V9.7 - CORREÇÃO FINAL ANIMAÇÃO PADDING             */
 /* ================================================= */
-
 .section-header-collapsible {
     display: flex;
     justify-content: space-between;
@@ -1466,13 +1370,11 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     cursor: pointer; /* Indica que o cabeçalho é clicável */
     padding: 10px 30px 0 30px; /* Ajustado para alinhar com o padding do conteúdo */
 }
-
 .section-header-collapsible .dashboard-header {
     margin-bottom: 0; /* Remove a margem inferior do H2 */
     border-bottom: none; /* Remove a borda inferior do H2 */
     padding-bottom: 0; /* Remove o padding inferior do H2 */
 }
-
 .btn-toggle-section {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1487,11 +1389,9 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     cursor: pointer;
     transition: background 0.3s, transform 0.3s ease;
 }
-
 .btn-toggle-section:hover {
     background: rgba(255, 255, 255, 0.2);
 }
-
 /* --- CORREÇÃO V9.7: Animação com Grid + Padding --- */
 .collapsible-content {
     display: grid;
@@ -1500,35 +1400,28 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     /* Transição para a altura do grid E o padding */
     transition: grid-template-rows 0.4s ease-out, padding 0.4s ease-out, opacity 0.3s ease-out;
     opacity: 1;
-    
     /* Padding e background movidos para cá (de .history-section) */
     padding: 30px;
     background: transparent;
 }
-
 .collapsible-content.collapsed {
     /* Anima para 0fr (altura zero) */
     grid-template-rows: 0fr; 
     opacity: 0;
-    
     /* Remove o padding quando recolhido */
     padding-top: 0;
     padding-bottom: 0;
 }
-
 /* Esta regra é essencial para a animação do grid funcionar */
 .collapsible-content > * {
     overflow: hidden;
 }
-
-
 /* Rotação do ícone do botão (Invertida para V9.5) */
 /* O ícone "para baixo" (colapsado) é o estado padrão */
 .btn-toggle-section i.bx-chevron-down {
     transform: rotate(0deg);
     transition: transform 0.3s ease;
 }
-
 /* O ícone "para cima" (expandido) é quando o botão é clicado (classe é removida no JS) */
 .btn-toggle-section i.bx-chevron-up {
     transform: rotate(180deg);
