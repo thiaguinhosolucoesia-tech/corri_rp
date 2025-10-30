@@ -1,6 +1,6 @@
 /* ================================================= */
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
-/* V12 - CORREÇÃO FINAL flex-shrink (CAMPO PRETO)    */
+/* V13 - CORREÇÃO FINAL LAYOUT (CAMPO PRETO)         */
 /* ================================================= */
 * {
     margin: 0;
@@ -21,7 +21,7 @@ html, body {
     overflow-y: auto;   /* Permite rolagem vertical */
 }
 
-/* * CORREÇÃO V11: Removido min-height 
+/* * CORREÇÃO V13: Removido min-height 
  * O container agora cresce e encolhe com o conteúdo.
 */
 .container {
@@ -37,7 +37,7 @@ html, body {
     /* --- Correção Layout Flex --- */
     display: flex;
     flex-direction: column;
-    /* min-height: calc(100vh - 40px); */ /* REMOVIDO V11 - Causa do "Campo Preto" */
+    /* min-height: calc(100vh - 40px); */ /* REMOVIDO V13 - Causa do "Campo Preto" */
 }
 
 /* ================================================= */
@@ -292,7 +292,7 @@ html, body {
     padding: 40px 30px;
     background: #1a1a2e;
     text-align: center;
-    /* flex-grow: 1; */ /* REMOVIDO V11 */
+    /* flex-grow: 1; */ /* REMOVIDO V11 - Causa do "Campo Preto" */
 }
 #pending-approval-view, #rejected-view {
      padding: 60px 30px;
