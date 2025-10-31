@@ -1,6 +1,6 @@
 /* ================================================= */
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
-/* V9.5 - CORREÇÃO ROLAGEM MOBILE + ANIMAÇÃO GRID    */
+/* V12 - CORREÇÃO FINAL flex-shrink (CAMPO PRETO)    */
 /* ================================================= */
 * {
     margin: 0;
@@ -8,20 +8,19 @@
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
 /* * CORREÇÃO V9.4: Garante que a PÁGINA possa rolar 
  * Isso corrige o corte no mobile.
 */
 html, body {
     background: linear-gradient(135deg, #1f2027 0%, #3a3a52 100%);
-    min-height: 100%; /* Garante que ocupe a altura toda, mas possa crescer */
+    min-height: 100%; /* Garante que o fundo ocupe a altura toda */
     padding: 0;
     color: #f0f0f0;
     overflow-x: hidden; /* Impede rolagem horizontal */
     overflow-y: auto;   /* Permite rolagem vertical */
 }
-
-/* * CORREÇÃO V9.4: Ajustado para layout flex (empurrar footer)
+/* * CORREÇÃO V11: Removido min-height 
+ * O container agora cresce e encolhe com o conteúdo.
 */
 .container {
     max-width: 1400px;
@@ -32,14 +31,11 @@ html, body {
     /* overflow: hidden; */ /* REMOVIDO - Esta era a causa do corte no mobile */
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(8px);
-
     /* --- Correção Layout Flex --- */
     display: flex;
     flex-direction: column;
-    /* Garante que o container tenha no mínimo a altura da tela menos as margens */
-    min-height: calc(100vh - 40px); 
+    /* min-height: calc(100vh - 40px); */ /* REMOVIDO - CAUSA O CAMPO PRETO */
 }
-
 /* ================================================= */
 /* CABEÇALHO (HEADER - V5)                           */
 /* ================================================= */
@@ -50,13 +46,11 @@ html, body {
     text-align: center;
     position: relative;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-    flex-shrink: 0; /* Impede o header de encolher */
+    flex-shrink: 0; /* Impede o header de encolher (ESTE FICA) */
 }
-
 #profile-header-info {
     margin-bottom: 15px; /* Espaço antes do botão Editar */
 }
-
 .header-profile-pic {
     width: 80px;
     height: 80px;
@@ -68,20 +62,17 @@ html, body {
     object-fit: cover; /* Garante que a imagem cubra o espaço */
     background-color: #3a3a52; /* Cor de fundo caso imagem falhe */
 }
-
 .header h1 {
     font-size: 2.2em; /* Ligeiramente menor */
     margin-bottom: 5px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
-
 #header-subtitle { /* Nomes dos Corredores */
     font-size: 1.2em;
     font-weight: 600;
     opacity: 0.9;
     margin-bottom: 8px;
 }
-
 .header-sub-info { /* Bio e Localização */
     font-size: 0.95em;
     opacity: 0.8;
@@ -94,7 +85,6 @@ html, body {
 #header-location::before {
     content: '📍 ';
 }
-
 #btn-edit-profile {
     position: absolute;
     bottom: 15px; /* Posicionado embaixo */
@@ -107,12 +97,9 @@ html, body {
 #btn-edit-profile:hover {
      background: rgba(255, 255, 255, 0.4);
 }
-
-
 .hidden {
     display: none !important;
 }
-
 .loader {
     padding: 40px;
     text-align: center;
@@ -120,7 +107,6 @@ html, body {
     color: #c5cae9;
     font-weight: 600;
 }
-
 .footer {
     background: #1f2027;
     color: #aaa;
@@ -128,12 +114,10 @@ html, body {
     padding: 20px;
     font-size: 0.9em;
     border-top: 1px solid #444;
-    
-    /* --- Correção Layout Flex --- */
-    margin-top: auto; /* Empurra o rodapé para o fim do .container */
-    flex-shrink: 0; /* Impede o rodapé de encolher */
+    /* --- Correção Layout Flex V11 --- */
+    margin-top: auto; /* Empurra o rodapé para o fim se o conteúdo for CURTO */
+    flex-shrink: 0; /* Impede o rodapé de encolher (ESTE FICA) */
 }
-
 .footer a {
     color: #aaa;
     text-decoration: none;
@@ -142,11 +126,9 @@ html, body {
 .footer a:hover {
     color: #667eea;
 }
-
 /* ================================================= */
 /* COMPONENTES UNIFICADOS (Botões, Formulários)      */
 /* ================================================= */
-
 /* Botões Genéricos */
 .btn {
     padding: 12px 25px;
@@ -157,7 +139,6 @@ html, body {
     cursor: pointer;
     transition: all 0.3s ease;
 }
-
 .btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -170,7 +151,6 @@ html, body {
     cursor: not-allowed;
     opacity: 0.7;
 }
-
 .btn-secondary {
     background: #6c757d;
     color: white;
@@ -178,7 +158,6 @@ html, body {
 .btn-secondary:hover {
     background: #5a6268;
 }
-
 /* Botões de Auth (Cabeçalho V1) */
 .auth-controls {
     position: absolute;
@@ -188,7 +167,6 @@ html, body {
     gap: 10px;
     align-items: center;
 }
-
 .auth-btn {
     padding: 8px 15px;
     background: rgba(255, 255, 255, 0.2);
@@ -221,7 +199,6 @@ html, body {
 #btn-back-to-my-dashboard:hover {
      background: rgba(0, 0, 0, 0.4);
 }
-
 /* Forms Genéricos (V1 + V2 + V5) */
 .form-group {
     display: flex;
@@ -284,7 +261,6 @@ html, body {
     font-size: 1em;
     color: #c5cae9;
 }
-
 /* ================================================= */
 /* SEÇÃO DE LOGIN / CADASTRO (V1)                    */
 /* ================================================= */
@@ -292,7 +268,7 @@ html, body {
     padding: 40px 30px;
     background: #1a1a2e;
     text-align: center;
-    flex-grow: 1; /* Faz esta seção crescer se for a única visível */
+    /* flex-grow: 1; */ /* REMOVIDO - CAUSA O CAMPO PRETO */
 }
 #pending-approval-view, #rejected-view {
      padding: 60px 30px;
@@ -372,7 +348,6 @@ html, body {
     background: #ffc107;
     color: #1f2027;
 }
-
 /* ================================================= */
 /* SEÇÃO DE PAINEL DE ADMIN (V1 + V2)                */
 /* ================================================= */
@@ -381,7 +356,7 @@ html, body {
     background: #ffc107;
     color: #1f2027;
     border-bottom: 2px solid #e0a800;
-    flex-shrink: 0; /* Impede o painel de encolher */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 #admin-panel h2 {
     text-align: center;
@@ -390,7 +365,6 @@ html, body {
     font-weight: 700;
     position: relative;
 }
-
 #admin-toggle-btn {
     position: absolute;
     top: 50%;
@@ -413,7 +387,6 @@ html, body {
 #admin-panel.collapsed #admin-panel-content {
     display: none;
 }
-
 #admin-panel h3 {
     text-align: center;
     margin-top: 25px;
@@ -440,7 +413,6 @@ html, body {
     text-align: left;
     color: #1f2027;
 }
-
 /* Admin V1 - Gestão de Usuários */
 #pending-list, #approved-list {
     display: grid;
@@ -478,7 +450,7 @@ html, body {
     gap: 10px;
     flex-wrap: nowrap; /* Evita que botões quebrem linha */
     justify-content: flex-end;
-    flex-shrink: 0; /* Impede que botões encolham */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .btn-approve, .btn-edit-user, .btn-reject, .btn-delete-user {
     padding: 8px 15px;
@@ -496,7 +468,6 @@ html, body {
 .btn-edit-user:hover { background: #0056b3; }
 .btn-reject, .btn-delete-user { background: #dc3545; }
 .btn-reject:hover, .btn-delete-user:hover { background: #c82333; }
-
 /* Admin V2 - Gestão de Corridas */
 .form-buttons-inline {
     display: flex;
@@ -551,8 +522,264 @@ html, body {
 .upload-status.text-green-500, .upload-status.success { color: #28a745; }
 .upload-status.text-red-500, .upload-status.error { color: #dc3545; }
 .upload-status.text-yellow-500, .upload-status.loading { color: #ffc107; }
-
-
+/* ================================================= */
+/* SEÇÃO DE PERFIL PÚBLICO (V1)                      */
+/* ================================================= */
+/* ================================================= */
+/* SEÇÃO DE MESSENGER (V9)                           */
+/* ================================================= */
+.messenger-modal {
+    width: 90%;
+    max-width: 800px;
+    height: 90%;
+    max-height: 700px;
+}
+.messenger-body {
+    display: flex;
+    height: calc(100% - 70px); /* Altura total - altura do header */
+    border-top: 1px solid #444;
+}
+.chat-list-container {
+    width: 300px;
+    min-width: 250px;
+    padding: 15px;
+    border-right: 1px solid #444;
+    overflow-y: auto;
+}
+.chat-list-container h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #c5cae9;
+}
+.chat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.chat-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    background: #2a2a3a;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.chat-item:hover {
+    background: #333345;
+}
+.chat-item.active {
+    background: #667eea;
+    color: white;
+}
+.chat-item-info {
+    flex-grow: 1;
+    margin-left: 10px;
+}
+.chat-item-info strong {
+    display: block;
+    font-size: 1em;
+}
+.chat-item-info span {
+    font-size: 0.8em;
+    color: #b0b0b0;
+}
+.chat-item.active .chat-item-info span {
+    color: #e0e0e0;
+}
+.chat-window-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.chat-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #444;
+}
+.chat-header h3 {
+    margin: 0;
+    margin-left: 10px;
+    font-size: 1.2em;
+}
+#btn-back-to-chats {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #c5cae9;
+}
+.messages-container {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.message {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 15px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+.message-received {
+    align-self: flex-start;
+    background: #444;
+    color: white;
+    border-bottom-left-radius: 2px;
+}
+.message-sent {
+    align-self: flex-end;
+    background: #667eea;
+    color: white;
+    border-bottom-right-radius: 2px;
+}
+.message-time {
+    display: block;
+    font-size: 0.7em;
+    margin-top: 5px;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.7);
+}
+.chat-form {
+    display: flex;
+    padding: 10px 15px;
+    border-top: 1px solid #444;
+    gap: 10px;
+}
+.chat-form input {
+    flex-grow: 1;
+    margin-bottom: 0;
+}
+.no-chat-selected {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #b0b0b0;
+}
+@media (max-width: 768px) {
+    /* Layout Geral */
+    .container {
+        /* margin: 0; */ /* Removido para manter a correção de min-height calc() */
+        /* border-radius: 0; */ /* Removido para manter a correção de min-height calc() */
+    }
+    .content {
+        padding: 15px;
+    }
+    /* Cabeçalho */
+    .header {
+        padding: 15px 10px 25px 10px;
+    }
+    .header h1 {
+        font-size: 1.8em;
+    }
+    #header-subtitle {
+        font-size: 1em;
+    }
+    .header-profile-pic {
+        width: 60px;
+        height: 60px;
+    }
+    #btn-edit-profile {
+        right: 10px;
+        bottom: 10px;
+    }
+    .header-controls {
+        top: 10px;
+        right: 10px;
+    }
+    #btn-back-to-public, #btn-back-to-my-dashboard {
+        top: 10px;
+        left: 10px;
+        padding: 6px 10px;
+        font-size: 0.8em;
+    }
+    /* Login/Cadastro */
+    #login-view {
+        padding: 20px 15px;
+    }
+    .login-buttons {
+        flex-direction: column;
+    }
+    /* Dashboard */
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    .stat-card {
+        padding: 10px;
+    }
+    .stat-number {
+        font-size: 1.2em;
+    }
+    .stat-label {
+        font-size: 0.7em;
+    }
+    /* Histórico de Corridas */
+    .race-card {
+        padding: 15px;
+    }
+    .race-card-header h3 {
+        font-size: 1.2em;
+    }
+    .runner-info-block {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    .runner-info-block .time, .runner-info-block .pace {
+        font-size: 1em;
+    }
+    .race-card-social {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .like-section {
+        margin-bottom: 5px;
+    }
+    /* Admin Panel */
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+    .admin-section {
+        margin-bottom: 20px;
+    }
+    .pending-item, .approved-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .admin-buttons {
+        width: 100%;
+        justify-content: space-between;
+    }
+    /* Messenger */
+    .messenger-modal {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+    }
+    .messenger-body {
+        flex-direction: column;
+    }
+    .chat-list-container {
+        width: 100%;
+        min-width: unset;
+        height: 200px;
+        border-right: none;
+        border-bottom: 1px solid #444;
+    }
+    .chat-window-container {
+        height: calc(100% - 200px);
+    }
+}
 /* ================================================= */
 /* SEÇÃO DE PERFIL PÚBLICO (V1)                      */
 /* ================================================= */
@@ -561,7 +788,7 @@ html, body {
     text-align: center;
     background: #1f2027;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    flex-grow: 1; /* Faz esta seção crescer se for a única visível */
+    /* flex-grow: 1; */ /* REMOVIDO V11 - Causa do "Campo Preto" */
 }
 #public-view h2 {
     color: #c5cae9;
@@ -609,6 +836,7 @@ html, body {
 .profile-card h3 {
     color: #4dabf5;
     margin-bottom: 5px;
+    font-size: 1.1em; /* Ligeiramente maior */
 }
 .profile-card h3.runner2-name {
     color: #f06292;
@@ -619,12 +847,11 @@ html, body {
     color: #b0b0b0;
     margin-top: 5px;
 }
-
 .public-profile-list-section {
     padding: 20px 30px;
     background: #1f2027;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    /* flex-shrink: 0; REMOVIDO: Permite que encolha */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .public-profile-list-section .section-title {
     font-size: 1.8em;
@@ -635,20 +862,19 @@ html, body {
 .public-profile-list-section .profile-list {
     margin-bottom: 0;
 }
-
 /* ================================================= */
 /* DASHBOARD DO USUÁRIO (V1)                         */
 /* ================================================= */
+/* *** CORREÇÃO V11: REMOVIDO 'flex-grow: 1' DAQUI *** */
 #user-content {
     /* Esta view só é mostrada quando logada */
-    flex-grow: 1; /* CORREÇÃO V9.4: Faz o conteúdo crescer e empurrar o footer */
-    min-height: 0; /* Permite que o contêiner encolha quando o conteúdo interno é ocultado */
+    /* flex-grow: 1; */ /* REMOVIDO V11 */
 }
 .dashboard-section {
     padding: 30px;
     background: rgba(20, 20, 30, 0.5);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    /* flex-shrink: 0; REMOVIDO: Permite que encolha */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .dashboard-header {
     text-align: center;
@@ -710,13 +936,12 @@ html, body {
     color: #f06292;
     font-weight: 600;
 }
-
 /* Controles de Corrida Pessoal (V1) */
 .controls-section {
     padding: 20px 30px;
     text-align: center;
     background: #1a1a2e;
-    /* flex-shrink: 0; REMOVIDO: Permite que encolha */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .btn-add {
     padding: 15px 30px;
@@ -733,12 +958,16 @@ html, body {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
 }
-
 /* Histórico de Corrida Pessoal (V1 + V6 + V7/8) */
 .history-section {
-    padding: 30px;
-    background: transparent;
-    /* flex-shrink: 0; REMOVIDO: Permitir que encolha */
+    /* padding: 30px; */ /* <-- REMOVIDO V9.7 */
+    /* background: transparent; */ /* <-- REMOVIDO V9.7 */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
+    /* --- CORREÇÃO V15: Adicionado overflow:hidden --- */
+    overflow: hidden; /* Essencial para a animação do grid funcionar */
+    /* --- CORREÇÃO V15: Removido height/min-height --- */
+    /* height: auto; */ /* Se estiver definido, remova */
+    /* min-height: 0; */ /* Se estiver definido, remova */
 }
 .year-group {
     margin-bottom: 30px;
@@ -762,52 +991,52 @@ html, body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
-.race-card:hover {
-    transform: translateY(-3px);
+.race-card.status-planned {
+    background: #3a382a;
+    border: 2px dashed #ffc107;
+}
+.race-card.status-skipped {
+    background: #3a2a2a;
+    opacity: 0.7;
 }
 .race-card-header {
     padding: 20px;
-    background: #333345;
     border-bottom: 1px solid #444;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
 }
 .race-card-header h3 {
-    font-size: 1.4em;
-    font-weight: 700;
-    color: #c5cae9;
-    margin: 0;
+    font-size: 1.3em;
+    color: #ffffff;
+    margin-bottom: 5px;
 }
-.race-card-header span {
+.race-card-header .date {
     font-size: 0.9em;
     color: #b0b0b0;
+    font-weight: 600;
 }
 .race-card-body {
     padding: 20px;
     flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
 }
-.runner-info-block {
+.runner-info {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
     border-bottom: 1px dashed #444;
 }
-.runner-info-block:last-child {
-    border-bottom: none;
+.runner-info:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
 }
-.runner-name {
+.runner-info .runner-name {
+    font-weight: bold;
     font-size: 1.1em;
-    font-weight: 600;
-    color: #4dabf5;
 }
+.runner-name.runner1 { color: #4dabf5; }
 .runner-name.runner2 { color: #f06292; }
 .runner-details { text-align: right; }
 .runner-time { font-size: 1.2em; font-weight: 700; color: #4caf50; }
@@ -815,7 +1044,6 @@ html, body {
 .runner-time.skipped { color: #f44336; font-size: 1.1em; font-style: italic; }
 .runner-pace { font-size: 0.9em; color: #b0b0b0; font-family: monospace; }
 .runner-pace.goal { color: #ffeb3b; }
-
 .race-card-footer {
     padding: 10px 20px;
     background: #222230;
@@ -841,7 +1069,6 @@ html, body {
     opacity: 0.6; transition: opacity 0.3s, color 0.3s; padding: 5px; line-height: 1;
 }
 .btn-control:hover { opacity: 1; }
-
 /* ================================================= */
 /* MODAIS (GERAL)                                    */
 /* ================================================= */
@@ -867,7 +1094,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     padding: 20px 30px; background: #1f2027; border-top: 1px solid #444;
     display: flex; justify-content: flex-end; gap: 15px; flex-shrink: 0;
 }
-
 /* --- Modal Corrida Pessoal (#race-modal) --- */
 #race-modal .modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .form-group.checkbox {
@@ -883,13 +1109,12 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 #btn-delete { background: #dc3545; color: white; margin-right: auto; }
 #btn-delete:hover { background: #c82333; }
 #btn-delete.hidden { display: none; }
-
 /* ================================================= */
 /* SEÇÃO DE CALENDÁRIO PÚBLICO (V2)                  */
 /* ================================================= */
 .public-calendar-section { 
     padding: 30px; 
-    /* flex-shrink: 0; REMOVIDO: Permite que encolha */
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
 }
 .section-title { font-size: 2.25rem; font-weight: 800; text-align: center; margin-bottom: 3rem; color: white; }
 .text-blue-highlight { color: #60a5fa; }
@@ -918,7 +1143,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .v2-inscricoes-button { background-color: #16a34a; color: white; }
 .v2-inscricoes-button:hover { background-color: #15803d; }
 .v2-race-button-disabled { background-color: #4b5563; color: #9ca3af; cursor: not-allowed; }
-
 /* ================================================= */
 /* MODAL DE RESULTADOS (V2)                          */
 /* ================================================= */
@@ -949,696 +1173,262 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .v2-results-table th, .v2-results-table td { padding: 10px 15px; }
 .v2-results-table tbody tr { border-bottom: 1px solid #444; }
 .v2-results-table tbody tr:hover { background-color: #333345; }
-
 /* ================================================= */
 /* NOVOS ESTILOS: MÍDIA (FOTOS) V4 + V8              */
 /* ================================================= */
-
 /* --- Galeria no Card --- */
 .race-card-media { padding: 10px 20px 20px 20px; background: #222230; border-top: 1px solid #444; }
 .race-card-media h4 { font-size: 0.9em; color: #b0b0b0; font-weight: 600; margin-bottom: 10px; }
 .media-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 8px; } /* Ajustado minmax */
-.media-gallery-item {
-    position: relative;
-    padding-top: 100%; /* 1:1 Aspect Ratio */
-    overflow: hidden;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.2s;
+.media-thumbnail {
+    width: 100%; height: 60px; object-fit: cover; border-radius: 8px; border: 2px solid #555;
+    cursor: pointer; transition: transform 0.2s, border-color 0.2s; display: block; /* Garante que não haja espaço extra */
 }
-.media-gallery-item:hover {
-    transform: scale(1.05);
+.media-thumbnail:hover { transform: scale(1.05); border-color: #667eea; }
+/* --- Botão de Adicionar Mídia --- */
+.btn-add-media {
+    background: #16a34a; color: white; border: none; border-radius: 8px; padding: 5px 10px; font-size: 1.1em;
+    font-weight: 600; cursor: pointer; transition: background 0.3s; margin-left: 10px; line-height: 1;
 }
-.media-gallery-item img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.btn-add-media:hover { background: #15803d; }
+/* --- Modal de Mídia (#media-modal - V8 Múltiplos) --- */
+#media-modal .modal-body { display: block; }
+.media-preview-grid { /* V8 */
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px;
+    margin-top: 15px; max-height: 300px; overflow-y: auto; background: #1f2027; padding: 10px; border-radius: 8px;
+    display: none; /* Começa oculto */
 }
-.media-gallery-item .media-count {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5em;
-    font-weight: bold;
+.media-preview-item { /* V8 */
+    position: relative; width: 100%; padding-bottom: 100%; /* Aspect ratio 1:1 */ height: 0;
 }
-
-/* --- Modal de Upload de Mídia --- */
-#media-modal .modal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+.media-preview-item img { /* V8 */
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 4px; border: 1px solid #555;
 }
-#media-modal .modal-body .form-group {
-    margin-bottom: 0;
-}
-.media-preview-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 10px;
-    padding: 10px;
-    border: 1px dashed #555;
-    border-radius: 10px;
-}
-.media-preview-item {
-    position: relative;
-    padding-top: 100%;
-    overflow: hidden;
-    border-radius: 5px;
-}
-.media-preview-item img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
+#media-upload-status { margin-top: 15px; font-size: 1em; font-weight: 600; text-align: center; }
 /* ================================================= */
-/* MODAL DE EDIÇÃO DE PERFIL (V5)                    */
+/* NOVOS ESTILOS: MODAL EDIÇÃO PERFIL V5             */
 /* ================================================= */
-#profile-edit-modal .modal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+#profile-edit-modal .modal-body { display: block; }
+#profile-edit-picture-preview-container {
+    width: 150px; height: 150px; margin: 15px auto 10px auto; border-radius: 50%;
+    overflow: hidden; border: 3px solid #555; background-color: #333345; display: none;
 }
-#profile-edit-modal .modal-body .form-group {
-    margin-bottom: 0;
-}
-#profile-edit-modal .modal-body .form-group.full-width {
-    grid-column: unset;
-}
-#profile-edit-modal .runner-names-display {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    font-size: 1.2em;
-    font-weight: 600;
-    color: #c5cae9;
-    margin-bottom: 15px;
-}
-#profile-edit-modal .runner-names-display span {
-    padding: 5px 10px;
-    border-radius: 5px;
-    background: #333345;
-}
-#profile-edit-modal .runner-names-display .runner-pr-thiago {
-    color: #4dabf5;
-}
-#profile-edit-modal .runner-names-display .runner-pr-thamis {
-    color: #f06292;
-}
-#profile-edit-modal .profile-picture-preview-container {
-    text-align: center;
-    margin-bottom: 15px;
-}
-#profile-edit-modal .profile-picture-preview {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #667eea;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    margin: 0 auto;
-    display: block;
-}
-
+#profile-edit-picture-preview { width: 100%; height: 100%; object-fit: cover; display: block; }
+#profile-picture-upload-status { margin-top: 10px; font-size: 0.9em; text-align: center; }
 /* ================================================= */
-/* SEÇÃO DE INTERAÇÕES (V6 + V7/8)                   */
+/* NOVOS ESTILOS: CURTIDAS (LIKES) V6 + V7/8         */
 /* ================================================= */
 .race-card-social {
-    padding: 10px 20px;
-    border-top: 1px solid #444;
+    padding: 10px 20px; background: #222230; border-top: 1px solid #444;
+    display: flex; align-items: center; justify-content: space-between; /* Ajustado */ gap: 8px;
+}
+.like-section { display: flex; align-items: center; gap: 8px; } /* Novo container para like+count */
+.like-button {
+    background: none; border: none; color: #b0b0b0; font-size: 1.6em; cursor: pointer; padding: 0;
+    line-height: 1; transition: color 0.2s ease, transform 0.2s ease;
+}
+.like-button:hover { color: #f87171; transform: scale(1.1); }
+.like-button.liked { color: #ef4444; }
+.like-button.liked i { font-weight: bold; } /* Usa ícone bxs-heart */
+.like-button:disabled i { animation: spin 1s linear infinite; } /* Animação loading */
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.like-count {
+    font-size: 0.9em; font-weight: 600; color: #c5cae9; cursor: pointer; /* V7/8 */
+    transition: color 0.2s;
+}
+.like-count:hover { color: #fff; text-decoration: underline; } /* V7/8 */
+.likers-preview { /* V7/8 */ display: flex; align-items: center; }
+.liker-avatar {
+    width: 24px; height: 24px; border-radius: 50%; border: 1px solid #555;
+    margin-left: -8px; /* Sobrepõe avatares */ object-fit: cover; background-color: #4b5563;
+}
+.likers-preview .liker-avatar:first-child { margin-left: 0; }
+.likers-more { /* V7/8 */
+    font-size: 0.8em; color: #b0b0b0; margin-left: 5px; cursor: pointer;
+}
+.likers-more:hover { text-decoration: underline; }
+/* --- Modal Likers --- V7/8 */
+#likers-modal .modal-body { display: block; max-height: 60vh; }
+#likers-modal-list { display: flex; flex-direction: column; gap: 15px; }
+.liker-item { display: flex; align-items: center; gap: 10px; background: #333345; padding: 10px; border-radius: 8px; }
+.liker-item img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #555; }
+.liker-item span { font-weight: 600; color: #e0e0e0; }
+/* ================================================= */
+/* NOVOS ESTILOS: COMENTÁRIOS V7/8                   */
+/* ================================================= */
+/* --- Seção de Comentários (Corrida e Perfil) --- */
+.race-card-comments, .profile-comments-section {
+    padding: 20px; background: #1f2027; border-top: 1px solid #444;
+    /* flex-shrink: 0; */ /* REMOVIDO V11 */
+}
+.profile-comments-section { border-radius: 0 0 20px 20px; } /* Ajuste borda container */
+.comments-title { font-size: 1.1em; color: #c5cae9; margin-bottom: 15px; font-weight: 600; }
+.comments-list { max-height: 300px; overflow-y: auto; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px; }
+.comment-item { display: flex; gap: 10px; align-items: flex-start; }
+.comment-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #4b5563; flex-shrink: 0; margin-top: 3px; }
+.comment-content { background: #333345; padding: 10px 15px; border-radius: 10px; flex-grow: 1; }
+.comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.comment-author { font-weight: 700; color: #a5b4fc; font-size: 0.9em; }
+.comment-timestamp { font-size: 0.75em; color: #9ca3af; }
+.comment-text { font-size: 0.95em; color: #e0e0e0; line-height: 1.4; word-wrap: break-word; }
+.comment-delete-btn { /* Opcional: botão de deletar */
+    background: none; border: none; color: #9ca3af; font-size: 0.8em; cursor: pointer; margin-left: 5px; opacity: 0.6;
+}
+.comment-delete-btn:hover { color: #ef4444; opacity: 1; }
+.comment-form { display: flex; gap: 10px; align-items: flex-start; }
+.comment-form textarea {
+    flex-grow: 1; min-height: 40px; height: auto; resize: vertical; padding: 10px 15px; font-size: 0.95em;
+}
+.btn-comment { padding: 10px 20px; font-size: 0.95em; align-self: flex-end; /* Alinha botão com base do textarea */}
+/* ================================================= */
+/* NOVOS ESTILOS: LIGHTBOX V8                        */
+/* ================================================= */
+.lightbox-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center; z-index: 1000;
+    opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
+}
+.lightbox-overlay:not(.hidden) { opacity: 1; pointer-events: auto; }
+#lightbox-image {
+    max-width: 90%; max-height: 80%; object-fit: contain;
+    border-radius: 5px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+.lightbox-close-btn {
+    position: absolute; top: 20px; right: 20px; background: none; border: none;
+    color: rgba(255, 255, 255, 0.7); font-size: 2.5rem; cursor: pointer; line-height: 1;
+    transition: color 0.2s;
+}
+.lightbox-close-btn:hover { color: white; }
+.lightbox-nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1); border: none; color: rgba(255, 255, 255, 0.7);
+    font-size: 2.5rem; cursor: pointer; padding: 10px 15px; border-radius: 5px;
+    transition: background 0.2s, color 0.2s;
+}
+.lightbox-nav-btn.prev { left: 15px; }
+.lightbox-nav-btn.next { right: 15px; }
+.lightbox-nav-btn:hover { background: rgba(255, 255, 255, 0.2); color: white; }
+.lightbox-nav-btn.disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+#lightbox-caption {
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6); color: #eee; padding: 8px 15px; border-radius: 5px;
+    font-size: 0.9em;
+}
+/* ================================================= */
+/* RESPONSIVIDADE (V1 + V2 + V5 + V6 + V7/8)         */
+/* ================================================= */
+@media (max-width: 900px) {
+    .admin-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    /* body { padding: 0; } */ /* Removido, já está em html, body */
+    .container { 
+        margin: 0; 
+        border-radius: 0; 
+        border: none; 
+        min-height: 100vh; /* Garante que no mobile o container sempre ocupe a tela toda */
+        width: 100%; /* Garante que o container use 100% da largura */
+    }
+    .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
+    #login-form { max-width: 100%; }
+    #btn-back-to-public, #btn-back-to-my-dashboard { top: 10px; left: 10px; padding: 6px 8px; font-size: 0.8em; }
+    .header { padding: 15px; }
+    .header h1 { font-size: 1.8em; }
+    .header p { font-size: 1em; }
+    .header-profile-pic { width: 60px; height: 60px; margin-bottom: 8px; }
+    #btn-edit-profile { position: static; display: block; width: 80%; margin: 15px auto 0 auto; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .race-card-list { grid-template-columns: 1fr; }
+    #race-modal .modal-body { grid-template-columns: 1fr; }
+    .form-group.checkbox { font-size: 1em; }
+    .calendar-grid { grid-template-columns: 1fr; }
+    .v2-modal-content { width: 100%; max-width: 100%; height: 100vh; max-height: 100vh; border-radius: 0; }
+    #admin-panel { padding-left: 15px; padding-right: 15px; }
+    #admin-panel h2 { font-size: 1.5em; padding-right: 0; }
+    #admin-toggle-btn { position: static; transform: none; display: block; width: 100%; margin-top: 15px; font-size: 1em; }
+    .admin-buttons { flex-wrap: wrap; }
+    .lightbox-nav-btn { font-size: 2rem; padding: 5px 10px; } /* Menores botões lightbox */
+    .lightbox-close-btn { font-size: 2rem; top: 10px; right: 10px; }
+    #lightbox-caption { font-size: 0.8em; bottom: 10px; }
+    /* CORREÇÃO V9.7: Ajuste de padding no mobile para header colapsável */
+    .section-header-collapsible {
+        padding: 10px 15px 0 15px; /* Padding menor no mobile */
+    }
+    .collapsible-content {
+        padding: 15px; /* Padding menor no mobile */
+    }
+    .collapsible-content.collapsed {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}
+/* ================================================= */
+/* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
+/* V9.7 - CORREÇÃO FINAL ANIMAÇÃO PADDING             */
+/* ================================================= */
+.section-header-collapsible {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #222230;
+    /* margin-bottom: 20px; */ /* REMOVIDO V9.7 - A margem/padding está no collapsible agora */
+    cursor: pointer; /* Indica que o cabeçalho é clicável */
+    padding: 10px 30px 0 30px; /* Ajustado para alinhar com o padding do conteúdo */
 }
-.like-section {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.section-header-collapsible .dashboard-header {
+    margin-bottom: 0; /* Remove a margem inferior do H2 */
+    border-bottom: none; /* Remove a borda inferior do H2 */
+    padding-bottom: 0; /* Remove o padding inferior do H2 */
 }
-.like-button {
-    background: none;
-    border: none;
-    color: #b0b0b0;
-    font-size: 1.5em;
-    cursor: pointer;
-    transition: color 0.2s;
-    padding: 5px;
-    line-height: 1;
-}
-.like-button:hover {
-    color: #f44336;
-}
-.like-button.liked {
-    color: #f44336;
-}
-.like-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-.like-count {
-    font-size: 0.9em;
-    color: #b0b0b0;
-    cursor: pointer;
-    font-weight: 600;
-}
-.likers-preview {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-}
-.liker-avatar {
-    width: 20px;
-    height: 20px;
+.btn-toggle-section {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #c5cae9;
     border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid #555;
-}
-.likers-more {
-    font-size: 0.8em;
-    color: #667eea;
-    font-weight: 600;
-}
-
-/* --- Modal Likers --- */
-#likers-modal .modal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.liker-item {
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 15px;
-    background: #333345;
-    border-radius: 8px;
+    justify-content: center;
+    font-size: 1.6em; /* Tamanho do ícone */
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s ease;
 }
-.liker-item img {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    object-fit: cover;
+.btn-toggle-section:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
-.liker-item span {
-    font-weight: 600;
+/* --- CORREÇÃO V9.7: Animação com Grid + Padding --- */
+.collapsible-content {
+    display: grid;
+    /* Inicia com 1fr (uma fração, ou seja, altura total do conteúdo) */
+    grid-template-rows: 1fr; 
+    /* Transição para a altura do grid E o padding */
+    transition: grid-template-rows 0.4s ease-out, padding 0.4s ease-out, opacity 0.3s ease-out;
+    opacity: 1;
+    /* Padding e background movidos para cá (de .history-section) */
+    padding: 30px;
+    background: transparent;
 }
-
-/* --- Comentários --- */
-.comments-section {
-    padding: 20px;
-    background: #222230;
-    border-top: 1px solid #444;
-}
-.comments-list {
-    margin-top: 15px;
-    max-height: 300px;
-    overflow-y: auto;
-    padding-right: 10px;
-}
-.comment-item {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px dashed #444;
-}
-.comment-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
+.collapsible-content.collapsed {
+    /* Anima para 0fr (altura zero) */
+    grid-template-rows: 0fr; 
+    opacity: 0;
+    /* Remove o padding quando recolhido */
+    padding-top: 0;
     padding-bottom: 0;
 }
-.comment-avatar {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
+/* Esta regra é essencial para a animação do grid funcionar */
+.collapsible-content > * {
+    overflow: hidden;
 }
-.comment-content {
-    flex-grow: 1;
+/* Rotação do ícone do botão (Invertida para V9.5) */
+/* O ícone "para baixo" (colapsado) é o estado padrão */
+.btn-toggle-section i.bx-chevron-down {
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
 }
-.comment-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 5px;
-}
-.comment-author {
-    font-weight: 700;
-    color: #667eea;
-}
-.comment-timestamp {
-    font-size: 0.8em;
-    color: #b0b0b0;
-}
-.comment-text {
-    font-size: 0.9em;
-    line-height: 1.4;
-    margin: 0;
-}
-.comment-form {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-.comment-form textarea {
-    flex-grow: 1;
-    resize: vertical;
-    min-height: 40px;
-    max-height: 100px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #555;
-    background: #333345;
-    color: #f0f0f0;
-}
-.comment-form .btn-comment {
-    padding: 8px 15px;
-    font-size: 0.9em;
-    flex-shrink: 0;
-}
-.comment-delete-btn {
-    background: none;
-    border: none;
-    color: #dc3545;
-    cursor: pointer;
-    font-size: 1em;
-    margin-left: auto;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-.comment-delete-btn:hover {
-    opacity: 1;
-}
-
-/* --- Comentários de Perfil (Mural de Recados) --- */
-.profile-comments-section {
-    padding: 30px;
-    background: #1f2027;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    /* flex-shrink: 0; REMOVIDO: Permite que encolha */
-}
-.profile-comments-section .section-title {
-    font-size: 1.8em;
-    color: #c5cae9;
-    margin-bottom: 20px;
-    padding: 0;
-    text-align: left;
-}
-.profile-comments-section .comments-list {
-    max-height: 400px;
-}
-.profile-comments-section .comment-form {
-    margin-top: 20px;
-}
-
-/* ================================================= */
-/* SEÇÃO DE MESSENGER (V9)                           */
-/* ================================================= */
-.messenger-modal {
-    width: 90%;
-    max-width: 800px;
-    height: 90%;
-    max-height: 700px;
-}
-
-.messenger-body {
-    display: flex;
-    height: calc(100% - 70px); /* Altura total - altura do header */
-    border-top: 1px solid #444;
-}
-
-.chat-list-container {
-    width: 300px;
-    min-width: 250px;
-    padding: 15px;
-    border-right: 1px solid #444;
-    overflow-y: auto;
-}
-
-.chat-list-container h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #c5cae9;
-}
-
-.chat-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.chat-item {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border-radius: 8px;
-    background: #2a2a3a;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.chat-item:hover {
-    background: #333345;
-}
-
-.chat-item.active {
-    background: #667eea;
-    color: white;
-}
-
-.chat-item-info {
-    flex-grow: 1;
-    margin-left: 10px;
-}
-
-.chat-item-info strong {
-    display: block;
-    font-size: 1em;
-}
-
-.chat-item-info span {
-    font-size: 0.8em;
-    color: #b0b0b0;
-}
-
-.chat-item.active .chat-item-info span {
-    color: #e0e0e0;
-}
-
-.chat-window-container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.chat-header {
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    border-bottom: 1px solid #444;
-}
-
-.chat-header h3 {
-    margin: 0;
-    margin-left: 10px;
-    font-size: 1.2em;
-}
-
-#btn-back-to-chats {
-    background: none;
-    border: none;
-    font-size: 1.5em;
-    cursor: pointer;
-    color: #c5cae9;
-}
-
-.messages-container {
-    flex-grow: 1;
-    padding: 15px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.message {
-    max-width: 70%;
-    padding: 8px 12px;
-    border-radius: 15px;
-    line-height: 1.4;
-    word-wrap: break-word;
-}
-
-.message-received {
-    align-self: flex-start;
-    background: #444;
-    color: white;
-    border-bottom-left-radius: 2px;
-}
-
-.message-sent {
-    align-self: flex-end;
-    background: #667eea;
-    color: white;
-    border-bottom-right-radius: 2px;
-}
-
-.message-time {
-    display: block;
-    font-size: 0.7em;
-    margin-top: 5px;
-    text-align: right;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.chat-form {
-    display: flex;
-    padding: 10px 15px;
-    border-top: 1px solid #444;
-    gap: 10px;
-}
-
-.chat-form input {
-    flex-grow: 1;
-    margin-bottom: 0;
-}
-
-.no-chat-selected {
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: #b0b0b0;
-}
-
-/* ================================================= */
-/* LIGHTBOX (V8)                                     */
-/* ================================================= */
-.lightbox-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-.lightbox-content {
-    position: relative;
-    max-width: 90%;
-    max-height: 90%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.lightbox-image {
-    max-width: 100%;
-    max-height: 80vh;
-    object-fit: contain;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-}
-.lightbox-caption {
-    color: white;
-    margin-top: 10px;
-    font-size: 1.1em;
-}
-.lightbox-close, .lightbox-prev, .lightbox-next {
-    position: absolute;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    font-size: 1.5em;
-    cursor: pointer;
-    border-radius: 50%;
-    transition: background 0.2s;
-    z-index: 1010;
-}
-.lightbox-close:hover, .lightbox-prev:hover, .lightbox-next:hover {
-    background: rgba(0, 0, 0, 0.8);
-}
-.lightbox-close {
-    top: 20px;
-    right: 20px;
-    font-size: 2em;
-    line-height: 1;
-    padding: 5px 15px;
-}
-.lightbox-prev {
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-.lightbox-next {
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-.lightbox-prev.disabled, .lightbox-next.disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-/* ================================================= */
-/* CORREÇÕES DE RESPONSIVIDADE (MOBILE)              */
-/* ================================================= */
-@media (max-width: 768px) {
-    /* Layout Geral */
-    .container {
-        margin: 0;
-        border-radius: 0;
-        min-height: 100vh;
-    }
-    .content {
-        padding: 15px;
-    }
-
-    /* Cabeçalho */
-    .header {
-        padding: 15px 10px 25px 10px;
-    }
-    .header h1 {
-        font-size: 1.8em;
-    }
-    #header-subtitle {
-        font-size: 1em;
-    }
-    .header-profile-pic {
-        width: 60px;
-        height: 60px;
-    }
-    #btn-edit-profile {
-        right: 10px;
-        bottom: 10px;
-    }
-    .header-controls {
-        top: 10px;
-        right: 10px;
-    }
-    #btn-back-to-public, #btn-back-to-my-dashboard {
-        top: 10px;
-        left: 10px;
-        padding: 6px 10px;
-        font-size: 0.8em;
-    }
-    .auth-controls {
-        top: 10px;
-        right: 10px;
-    }
-
-    /* Login/Cadastro */
-    #login-view {
-        padding: 20px 15px;
-    }
-    .login-buttons {
-        flex-direction: column;
-    }
-
-    /* Dashboard */
-    .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 10px;
-    }
-    .stat-card {
-        padding: 10px;
-    }
-    .stat-number {
-        font-size: 1.2em;
-    }
-    .stat-label {
-        font-size: 0.7em;
-    }
-
-    /* Histórico de Corridas */
-    .race-card {
-        padding: 15px;
-    }
-    .race-card-header h3 {
-        font-size: 1.2em;
-    }
-    .runner-info-block {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
-    .runner-info-block .time, .runner-info-block .pace {
-        font-size: 1em;
-    }
-    .race-card-social {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    .like-section {
-        margin-bottom: 5px;
-    }
-    .race-card-list {
-        grid-template-columns: 1fr;
-    }
-
-    /* Admin Panel */
-    .admin-grid {
-        grid-template-columns: 1fr;
-    }
-    .admin-section {
-        margin-bottom: 20px;
-    }
-    .pending-item, .approved-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    .admin-buttons {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    /* Messenger */
-    .messenger-modal {
-        width: 100%;
-        height: 100%;
-        max-width: 100%;
-        max-height: 100%;
-    }
-    .messenger-body {
-        flex-direction: column;
-    }
-    .chat-list-container {
-        width: 100%;
-        min-width: unset;
-        height: 200px;
-        border-right: none;
-        border-bottom: 1px solid #444;
-    }
-    .chat-window-container {
-        height: calc(100% - 200px);
-    }
-    .lightbox-prev, .lightbox-next {
-        padding: 5px 10px;
-        font-size: 1.2em;
-    }
-    .lightbox-close {
-        top: 10px;
-        right: 10px;
-    }
+/* O ícone "para cima" (expandido) é quando o botão é clicado (classe é removida no JS) */
+.btn-toggle-section i.bx-chevron-up {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
 }
