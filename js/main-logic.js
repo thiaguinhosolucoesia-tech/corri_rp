@@ -138,6 +138,13 @@ const dom = {
     profileEditPicturePreview: document.getElementById('profile-edit-picture-preview'),
     profilePictureUploadStatus: document.getElementById('profile-picture-upload-status'),
 
+    // V10 (Strava)
+    btnConnectStrava: document.getElementById('btn-connect-strava'),
+    btnSyncStrava: document.getElementById('btn-sync-strava'),
+    stravaIntegrationStatus: document.getElementById('strava-integration-status'),
+    stravaConnectStatus: document.getElementById('strava-connect-status'),
+    stravaErrorStatus: document.getElementById('strava-error-status'),
+
     // V7/8 (Modal Likers)
     likersModal: document.getElementById('likers-modal'),
     likersModalTitle: document.getElementById('likers-modal-title'),
@@ -1456,11 +1463,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof CLOUDINARY_CLOUD_NAME === 'undefined' || typeof CLOUDINARY_UPLOAD_PRESET === 'undefined' || !CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === "COLE_AQUI_SEU_CLOUD_NAME" || !CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_UPLOAD_PRESET === "COLE_AQUI_SEU_UPLOAD_PRESET") { alert("ERRO CFG Cloudinary"); return; }
     CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`; CLOUDINARY_PRESET = CLOUDINARY_UPLOAD_PRESET;
 
+    // VERIFICAÇÃO CRÍTICA (Strava) - CORRIGIDO com verificação de nulidade
+    if (typeof STRAVA_CLIENT_ID === 'undefined' || STRAVA_CLIENT_ID === "SEU_CLIENT_ID_AQUI" || typeof PIPEDREAM_OAUTH_URL === 'undefined' || PIPEDREAM_OAUTH_URL === "URL_DO_SEU_WORKFLOW_1_AQUI" || typeof PIPEDREAM_REFRESH_AND_FETCH_URL === 'undefined' || PIPEDREAM_REFRESH_AND_FETCH_URL === "URL_DO_SEU_WORKFLOW_2_AQUI") {
+       console.warn("Integração com Strava não configurada em config.js");
+       
+       // CORREÇÃO: SÓ TENTA DESABILITAR O BOTÃO SE ELE EXISTIR
+       if (dom.btnConnectStrava) { 
+           dom.btnConnectStrava.disabled = true;
+           dom.btnConnectStrava.innerHTML = "Strava (não configurado)";
+           dom.btnConnectStrava.title = "A integração com Strava não foi configurada corretamente no arquivo config.js";
+       }
+    }
+
     // --- LISTENERS ---
     dom.btnAddnew.addEventListener('click', () => openModal()); dom.btnCloseModal.addEventListener('click', (e) => { e.preventDefault(); closeModal(); }); dom.btnCancel.addEventListener('click', (e) => { e.preventDefault(); closeModal(); }); dom.form.addEventListener('submit', handleFormSubmit); dom.btnDelete.addEventListener('click', () => { const id = document.getElementById('race-id').value; if(id) deleteRace(id); });
     dom.btnLoginSubmit.addEventListener('click', handleSignIn); dom.btnSignUpSubmit.addEventListener('click', handleSignUp); dom.btnLogout.addEventListener('click', signOut); dom.btnBackToPublic.addEventListener('click', showLoggedOutView); dom.loginToggleLink.addEventListener('click', () => { const isSigningUp = dom.signupFields.classList.contains('hidden'); toggleLoginMode(isSigningUp); }); dom.btnBackToMyDashboard.addEventListener('click', () => { if (authUser) { dom.btnBackToMyDashboard.classList.add('hidden'); showUserDashboard(authUser); } });
     dom.btnCloseMediaModal.addEventListener('click', (e) => { e.preventDefault(); closeMediaUploadModal(); }); dom.btnCancelMediaUpload.addEventListener('click', (e) => { e.preventDefault(); closeMediaUploadModal(); }); dom.mediaFileInput.addEventListener('change', handleMediaFileSelect); dom.mediaForm.addEventListener('submit', handleMediaUploadSubmit);
     dom.btnEditProfile.addEventListener('click', openProfileEditModal); dom.btnCloseProfileEditModal.addEventListener('click', (e) => { e.preventDefault(); closeProfileEditModal(); }); dom.btnCancelProfileEdit.addEventListener('click', (e) => { e.preventDefault(); closeProfileEditModal(); }); dom.profileEditPictureInput.addEventListener('change', handleProfilePictureSelect); dom.profileEditForm.addEventListener('submit', handleProfileEditSubmit);
+    
+    // Listeners Strava (CORRIGIDO com verificação de nulidade)
+    if (dom.btnConnectStrava) {
+        dom.btnConnectStrava.addEventListener('click', handleStravaConnect);
+    }
+    if (dom.btnSyncStrava) {
+        dom.btnSyncStrava.addEventListener('click', handleStravaSync);
+    }
+    
     dom.modalSearchInput.addEventListener('keyup', filterResultsInModal); dom.btnCloseResultsModal.addEventListener('click', closeResultsModal); dom.modalOverlay.addEventListener('click', (e) => { if (e.target === dom.modalOverlay && !dom.modalOverlay.classList.contains('hidden')) { closeResultsModal(); } });
     dom.btnCloseLikersModal.addEventListener('click', (e) => { e.preventDefault(); closeLikersModal(); }); dom.btnCancelLikersModal.addEventListener('click', (e) => { e.preventDefault(); closeLikersModal(); });
     dom.profileCommentForm.addEventListener('submit', handleProfileCommentSubmit);
@@ -1482,7 +1510,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ROTEADOR PRINCIPAL (Auth State Changed) ---
     auth.onAuthStateChanged((user) => {
-        const previousUserUid = authUser?.uid; authUser = user;
+        
+        // Lógica Strava: Verifica se isso é um retorno OAuth
+        // CORREÇÃO: Movido para depois da verificação do usuário, mas antes da limpeza de URL
+        // handleStravaOAuthCallback(); // << REMOVIDO DAQUI
+        
+        const previousUserUid = authUser?.uid; 
+        authUser = user;
+        
+        // Lógica Strava: Verifica se isso é um retorno OAuth
+        // CORREÇÃO: Deve rodar ANTES de limpar listeners, mas DEPOIS de definir authUser
+        handleStravaOAuthCallback();
+        
         if (previousUserUid && previousUserUid !== user?.uid) { // Limpa listeners do user anterior
             firebase.database().ref(`/users/${previousUserUid}/races`).off();
             // Limpa ambos os listeners V9.2
@@ -1491,6 +1530,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentProfileCommentsListener) { currentProfileCommentsListener.off(); currentProfileCommentsListener = null; }
         }
         if (user) { // --- USUÁRIO LOGADO ---
+            // Lógica Strava: Verifica se o usuário já tem tokens salvos
+            checkStravaConnection(user.uid);
+            
             firebase.database().ref('/admins/' + user.uid).once('value', (adminSnapshot) => {
                 isAdmin = adminSnapshot.exists() && adminSnapshot.val() === true;
                 firebase.database().ref('/users/' + user.uid).once('value', (userSnapshot) => {
@@ -1504,3 +1546,298 @@ document.addEventListener('DOMContentLoaded', () => {
         } else { /* --- USUÁRIO DESLOGADO --- */ showLoggedOutView(); }
     });
 }); // Fim DOMContentLoaded
+
+// ======================================================
+// SEÇÃO V10: LÓGICA DE INTEGRAÇÃO STRAVA
+// ======================================================
+
+/**
+ * Inicia o fluxo de autorização do Strava.
+ * Redireciona o usuário para a página de permissão do Strava.
+ */
+function handleStravaConnect() {
+    if (!authUser) { alert("Faça login primeiro."); return; }
+    if (typeof STRAVA_CLIENT_ID === 'undefined') { alert("Erro: Strava Client ID não configurado."); return; }
+
+    const redirectUri = "https://thiaguinhosolucoesia-tech.github.io/corri_rp/index.html"; // Exatamente o que está no App Strava
+    const scope = "activity:read_all"; // Permissão para ler todas as atividades
+    
+    // Salva o UID do Firebase no localStorage para saber quem está conectando
+    // Isso é necessário porque seremos redirecionados para fora do app
+    localStorage.setItem('stravaAuthUID', authUser.uid); 
+    
+    // 3. Redireciona o usuário para o Strava
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&approval_prompt=force`;
+    window.location.href = authUrl;
+}
+
+/**
+ * Chamada no carregamento da página. Verifica se a URL contém um código de
+ * retorno do Strava. Se sim, inicia a troca do código por tokens.
+ */
+function handleStravaOAuthCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authCode = urlParams.get('code');
+    const scope = urlParams.get('scope');
+    
+    // 1. Pega o UID do usuário que iniciou o processo
+    const linkingUid = localStorage.getItem('stravaAuthUID');
+
+    // 2. Se não tiver "code" ou "linkingUid", não é um callback.
+    if (!authCode || !linkingUid) {
+        return;
+    }
+
+    // 3. Limpa o localStorage e os parâmetros da URL para evitar reprocessamento
+    localStorage.removeItem('stravaAuthUID');
+    window.history.replaceState({}, document.title, window.location.pathname); // Limpa a URL
+
+    // 4. Garante que o usuário logado é o mesmo que iniciou
+    if (!authUser || authUser.uid !== linkingUid) {
+        console.error("Erro de autenticação Strava: UID não bate.");
+        updateStravaButtonUI(false, "Erro de autenticação."); // CORRIGIDO: Agora tem verificação de nulidade
+        return;
+    }
+
+    console.log("Código Strava recebido. Trocando por token...");
+    updateStravaButtonUI(false, "Conectando...", true); // CORRIGIDO: Agora tem verificação de nulidade
+
+    // 5. Chama nosso Workflow 1 do Pipedream para trocar o código
+    fetch(`${PIPEDREAM_OAUTH_URL}?code=${authCode}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Falha na rede do Pipedream: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error || !data.access_token) {
+                throw new Error(`Erro do Pipedream/Strava: ${data.error || 'Token não recebido'}`);
+            }
+
+            console.log("Tokens recebidos:", data);
+            const { access_token, refresh_token, expires_at, athlete } = data;
+            
+            const tokenData = {
+                athlete_id: athlete.id,
+                access_token: access_token,
+                refresh_token: refresh_token,
+                expires_at: expires_at // Este é um timestamp em segundos
+            };
+
+            // 6. Salva os tokens de forma segura no Firebase
+            const dbRef = firebase.database().ref(`/userStravaTokens/${linkingUid}`);
+            return dbRef.set(tokenData);
+        })
+        .then(() => {
+            console.log("Tokens Strava salvos no Firebase com sucesso!");
+            updateStravaButtonUI(true, "Conectado!"); // CORRIGIDO
+            alert("Strava conectado com sucesso!");
+            closeProfileEditModal(); // Fecha o modal
+        })
+        .catch(err => {
+            console.error("Erro completo no fluxo de callback do Strava:", err);
+            updateStravaButtonUI(false, `Erro: ${err.message}`); // CORRIGIDO
+        });
+}
+
+/**
+ * Verifica no Firebase se o usuário já conectou o Strava.
+ */
+function checkStravaConnection(uid) {
+    if (!uid) return;
+    const dbRef = firebase.database().ref(`/userStravaTokens/${uid}`);
+    dbRef.once('value')
+        .then(snapshot => {
+            if (snapshot.exists()) {
+                updateStravaButtonUI(true, "Conectado!"); // CORRIGIDO
+            } else {
+                updateStravaButtonUI(false); // CORRIGIDO
+            }
+        })
+        .catch(err => {
+            console.error("Erro ao checar conexão Strava:", err);
+            updateStravaButtonUI(false, "Erro ao checar status."); // CORRIGIDO
+        });
+}
+
+/**
+ * Atualiza a UI dos botões Strava no modal de perfil.
+ * CORRIGIDO: Adicionadas verificações de nulidade para todos os elementos do DOM.
+ */
+function updateStravaButtonUI(isConnected, message = "", isLoading = false) {
+    // VERIFICAÇÕES DE NULIDADE ADICIONADAS
+    if (dom.stravaErrorStatus) dom.stravaErrorStatus.textContent = '';
+    
+    if (isLoading) {
+        if (dom.btnConnectStrava) dom.btnConnectStrava.classList.add('hidden');
+        if (dom.stravaIntegrationStatus) dom.stravaIntegrationStatus.classList.remove('hidden');
+        if (dom.btnSyncStrava) dom.btnSyncStrava.classList.add('hidden');
+        if (dom.stravaConnectStatus) dom.stravaConnectStatus.textContent = message || "Carregando...";
+    } else if (isConnected) {
+        if (dom.btnConnectStrava) dom.btnConnectStrava.classList.add('hidden');
+        if (dom.stravaIntegrationStatus) dom.stravaIntegrationStatus.classList.remove('hidden');
+        if (dom.btnSyncStrava) dom.btnSyncStrava.classList.remove('hidden');
+        if (dom.stravaConnectStatus) dom.stravaConnectStatus.textContent = message || "Conectado!";
+    } else { // Desconectado ou erro
+        if (dom.btnConnectStrava) dom.btnConnectStrava.classList.remove('hidden');
+        if (dom.stravaIntegrationStatus) dom.stravaIntegrationStatus.classList.add('hidden');
+        if (message && dom.stravaErrorStatus) {
+            dom.stravaErrorStatus.textContent = message;
+        }
+    }
+    if (dom.btnConnectStrava) dom.btnConnectStrava.disabled = isLoading;
+    if (dom.btnSyncStrava) dom.btnSyncStrava.disabled = isLoading;
+}
+
+
+/**
+ * Ponto de entrada para o clique no botão "Sincronizar Corridas".
+ */
+async function handleStravaSync() {
+    if (!authUser) { alert("Não autenticado."); return; }
+    updateStravaButtonUI(true, "Sincronizando...", true);
+
+    try {
+        const accessToken = await getValidStravaToken(authUser.uid);
+        if (!accessToken) {
+            throw new Error("Não foi possível obter um token de acesso válido.");
+        }
+        
+        const races = await fetchStravaRaces(accessToken);
+        if (races.length === 0) {
+            alert("Nenhuma nova atividade marcada como 'Prova' encontrada nas suas últimas 50 atividades do Strava.");
+            updateStravaButtonUI(true, "Conectado!");
+            return;
+        }
+
+        const savedCount = await saveRacesToFirebase(races);
+        alert(`${savedCount} novas provas do Strava foram adicionadas ao seu histórico!`);
+        
+        updateStravaButtonUI(true, "Sincronizado!");
+
+    } catch (err) {
+        console.error("Erro ao sincronizar Strava:", err);
+        updateStravaButtonUI(true, `Erro: ${err.message}`, false);
+    }
+}
+
+/**
+ * Obtém um token de acesso válido, atualizando-o se estiver expirado.
+ */
+async function getValidStravaToken(uid) {
+    const dbRef = firebase.database().ref(`/userStravaTokens/${uid}`);
+    const snapshot = await dbRef.once('value');
+    const tokenData = snapshot.val();
+
+    if (!tokenData) { throw new Error("Usuário não conectado ao Strava."); }
+
+    const bufferTimeInSeconds = 300; // 5 minutos de margem
+    const isExpired = (Date.now() / 1000) > (tokenData.expires_at - bufferTimeInSeconds);
+
+    if (!isExpired) {
+        console.log("Token Strava é válido.");
+        return tokenData.access_token;
+    }
+
+    // --- Token Expirou! Precisamos dar refresh ---
+    console.log("Token Strava expirado. Atualizando...");
+    const response = await fetch(`${PIPEDREAM_REFRESH_AND_FETCH_URL}?refresh_token=${tokenData.refresh_token}`);
+    
+    if (!response.ok) {
+        // Se o refresh falhar (ex: permissão revogada), limpa a conexão
+        await dbRef.remove();
+        throw new Error("Falha ao atualizar token. Por favor, conecte-se ao Strava novamente.");
+    }
+
+    const newTokens = await response.json();
+    const newTokenData = {
+        athlete_id: tokenData.athlete_id, // Mantém o ID original
+        access_token: newTokens.access_token,
+        refresh_token: newTokens.refresh_token,
+        expires_at: newTokens.expires_at
+    };
+
+    // Salva os novos tokens no Firebase
+    await dbRef.set(newTokenData);
+    console.log("Token Strava atualizado e salvo.");
+    
+    return newTokenData.access_token;
+}
+
+/**
+ * Busca as últimas 50 atividades do Strava e filtra as Provas (Race).
+ */
+async function fetchStravaRaces(accessToken) {
+    console.log("Buscando atividades do Strava...");
+    const response = await fetch(`${PIPEDREAM_REFRESH_AND_FETCH_URL}?access_token=${accessToken}`);
+    
+    if (!response.ok) {
+        throw new Error("Falha ao buscar atividades no Pipedream.");
+    }
+    
+    const races = await response.json();
+    console.log(`Encontradas ${races.length} provas.`);
+    return races;
+}
+
+/**
+ * Salva as corridas (filtradas pelo Pipedream) no Firebase.
+ */
+async function saveRacesToFirebase(races) {
+    if (!authUser || !db.profile.runner1Name) {
+        throw new Error("Perfil do usuário não carregado.");
+    }
+
+    let savedCount = 0;
+    const updates = {};
+    
+    for (const race of races) {
+        // Usamos o ID da atividade do Strava para evitar duplicatas
+        const stravaRaceId = `strava-${race.id}`;
+        
+        // Verifica se essa corrida já existe no nosso DB
+        if (db.races[stravaRaceId]) {
+            console.log(`Corrida ${race.name} já existe, pulando.`);
+            continue;
+        }
+
+        // Formata os dados para o formato do nosso banco
+        const raceDate = new Date(race.start_date);
+        const dateStr = raceDate.toISOString().split('T')[0];
+        const timeStr = secondsToTime(race.elapsed_time); // Usa tempo decorrido
+        const distanceKm = (race.distance / 1000).toFixed(2);
+
+        const raceData = {
+            date: dateStr,
+            year: raceDate.getFullYear().toString(),
+            raceName: race.name,
+            distance: parseFloat(distanceKm),
+            juntos: false, // Não podemos saber isso pelo Strava
+            notes: `Importado do Strava (ID: ${race.id})`,
+            [RUNNER_1_KEY]: {
+                status: 'completed',
+                time: normalizeTime(timeStr),
+                goalTime: null,
+                distance: parseFloat(distanceKm)
+            },
+            // Se o perfil tiver Corredor 2, marca como "não correu"
+            [RUNNER_2_KEY]: hasRunner2 ? { status: 'skipped', time: null, goalTime: null, distance: null } : null
+        };
+
+        // Prepara a atualização
+        updates[`/users/${authUser.uid}/races/${stravaRaceId}`] = raceData;
+        
+        // Também precisamos inicializar os nós de interação
+        updates[`/raceLikes/${stravaRaceId}`] = { ownerUid: authUser.uid, likeCount: 0, likes: {}, likers: {} };
+        updates[`/raceComments/${stravaRaceId}`] = { ownerUid: authUser.uid, comments: {} };
+        
+        savedCount++;
+    }
+
+    if (savedCount > 0) {
+        await firebase.database().ref().update(updates);
+    }
+
+    return savedCount;
+}
