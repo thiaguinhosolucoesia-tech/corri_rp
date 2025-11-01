@@ -31,8 +31,8 @@ const CLOUDINARY_UPLOAD_PRESET = "rede_corridas_unsigned"; // Mantenha seu Prese
 // 4. SEU CLIENT ID DO STRAVA (Da Parte 1)
 const STRAVA_CLIENT_ID = "180023";
 
-// 5. URL DO SEU WORKFLOW 1 (OAUTH) DO PIPEDREAM (Da Parte 2)
-const PIPEDREAM_OAUTH_URL = "https://eo9o1qisbc8fpyu.m.pipedream.net"; 
+// 5. URL DO SEU WORKFLOW 1 (OAUTH) DO PIPEDREAM (Da Parte 2) - CORRIGIDA
+const PIPEDREAM_OAUTH_URL = "https://eoqewpd3qk15xx.m.pipedream.net"; 
 
 // 6. URL DO SEU WORKFLOW 2 (REFRESH/BUSCA) DO PIPEDREAM (Da Parte 2)
 const PIPEDREAM_REFRESH_AND_FETCH_URL = "https://eoex4dd33w443lh.m.pipedream.net";
