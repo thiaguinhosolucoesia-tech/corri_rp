@@ -1,5 +1,6 @@
 // =================================================================
 // ARQUIVO DE LÓGICA PRINCIPAL (V9.2 - Estrutura BD Separada + Layout + Add Corrida Pública + Correções)
+// ATUALIZADO (V9.3) COM TAREFAS 2 (Excluir Mídia) e 3 (Ver Classificação)
 // =================================================================
 
 // --- Variáveis Globais do App ---
@@ -463,7 +464,7 @@ function createRaceCard(race) {
 
     let mediaButtonHTML = '';
     if (canEdit && cardStatus === 'completed') {
-        mediaButtonHTML = `<button class="btn-control btn-add-media" data-race-id="${race.id}" title="Adicionar Mídia">📸</button>`;
+        mediaButtonHTML = `<button class="btn-control btn-add-media" data-race-id="${race.id}" title="Adicionar/Excluir Mídia">📸</button>`;
     }
 
     // --- Seção Social (Likes + Preview Likers) - Placeholder ---
@@ -916,14 +917,17 @@ function showRaceResultsModal(raceId) {
 
             if (atletas.length > 0) {
                 contentHTML += `<h3 class="v2-modal-category-title">${category}</h3>`;
-                contentHTML += `<div style="overflow-x: auto;"><table class="v2-results-table"><thead><tr><th>#</th><th>Atleta</th><th>Equipe</th><th>Tempo</th></tr></thead><tbody>`;
+                // --- INÍCIO TAREFA 3 (Modificação) ---
+                contentHTML += `<div style="overflow-x: auto;"><table class="v2-results-table"><thead><tr><th>#</th><th>Atleta</th><th>Equipe</th><th>Tempo</th><th>Class. Cat.</th></tr></thead><tbody>`;
                 contentHTML += atletas.map(atleta => `
                     <tr>
                         <td class="font-medium">${atleta.placement}</td>
                         <td>${atleta.name || atleta.nome || 'N/A'}</td>
                         <td style="color: #b0b0b0;">${atleta.team || atleta.assessoria || 'Individual'}</td>
                         <td style="font-family: monospace;">${atleta.time || atleta.tempo || 'N/A'}</td>
+                        <td style="color: #c5cae9;">${atleta.placement_info || 'N/A'}</td>
                     </tr>`).join('');
+                // --- FIM TAREFA 3 (Modificação) ---
                 contentHTML += `</tbody></table></div>`;
             }
         });
@@ -981,26 +985,84 @@ function closeResultsModal() { dom.modalOverlay.classList.add('hidden'); }
 
 // ======================================================
 // SEÇÃO V4 + V8: LÓGICA DE UPLOAD DE MÍDIA (CLOUDINARY)
+// ATUALIZADA (V9.3) COM TAREFA 2 (Excluir Mídia)
 // ======================================================
+
 function openMediaUploadModal(raceId) {
     const race = db.races[raceId]; if (!race) { console.error("Corrida não encontrada:", raceId); return; }
-    dom.mediaForm.reset(); dom.mediaRaceIdInput.value = raceId; dom.mediaModalTitle.textContent = `Adicionar Mídia: ${race.raceName}`;
-    dom.mediaPreviewContainer.innerHTML = ''; dom.mediaPreviewContainer.style.display = 'none'; dom.mediaUploadStatus.textContent = '';
-    dom.mediaUploadStatus.className = 'upload-status'; dom.btnConfirmMediaUpload.disabled = true; dom.mediaModal.showModal();
+    dom.mediaForm.reset(); dom.mediaRaceIdInput.value = raceId; dom.mediaModalTitle.textContent = `Gerenciar Mídia: ${race.raceName}`;
+    dom.mediaPreviewContainer.innerHTML = ''; dom.mediaUploadStatus.textContent = '';
+    dom.mediaUploadStatus.className = 'upload-status'; dom.btnConfirmMediaUpload.disabled = true; // Desabilita upload até selecionar NOVOS arquivos
+
+    // --- INÍCIO TAREFA 2: Carregar mídias existentes ---
+    const mediaItems = (race.media && Object.entries(race.media))
+                        .sort(([,a], [,b]) => a.uploadedAt - b.uploadedAt) || [];
+
+    if (mediaItems.length > 0) {
+        dom.mediaPreviewContainer.style.display = 'grid'; // Mostra o grid
+        mediaItems.forEach(([mediaId, item]) => {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'media-preview-item existing'; // Classe 'existing'
+            previewItem.innerHTML = `
+                <img src="${item.url}" alt="Mídia existente">
+                <button type="button" class="btn-delete-media" data-media-id="${mediaId}" data-media-url="${item.url}" title="Excluir esta mídia">×</button>
+            `;
+            dom.mediaPreviewContainer.appendChild(previewItem);
+        });
+
+        // Adiciona listeners aos novos botões de exclusão
+        dom.mediaPreviewContainer.querySelectorAll('.btn-delete-media').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const mediaId = e.currentTarget.dataset.mediaId;
+                const mediaUrl = e.currentTarget.dataset.mediaUrl;
+                // Chama a nova função de exclusão
+                deleteMediaItem(raceId, mediaId, mediaUrl, e.currentTarget.parentElement);
+            });
+        });
+    } else {
+         // Se não houver mídias existentes, garante que o container esteja oculto (até que novos arquivos sejam selecionados)
+         dom.mediaPreviewContainer.style.display = 'none';
+    }
+    // --- FIM TAREFA 2 ---
+
+    dom.mediaModal.showModal();
 }
+
 function closeMediaUploadModal() { dom.mediaModal.close(); }
+
 function handleMediaFileSelect(e) {
-    const files = e.target.files; dom.mediaPreviewContainer.innerHTML = ''; dom.mediaUploadStatus.textContent = ''; dom.mediaUploadStatus.className = 'upload-status'; let hasValidFiles = false;
+    const files = e.target.files;
+    
+    // --- INÍCIO TAREFA 2 (Modificação) ---
+    // Limpa apenas os previews de NOVOS arquivos (que não têm a classe .existing)
+    dom.mediaPreviewContainer.querySelectorAll('.media-preview-item:not(.existing)').forEach(el => el.remove());
+    // --- FIM TAREFA 2 (Modificação) ---
+
+    dom.mediaUploadStatus.textContent = ''; dom.mediaUploadStatus.className = 'upload-status'; let hasValidFiles = false;
+    
     if (files && files.length > 0) {
-        dom.mediaPreviewContainer.style.display = 'grid'; Array.from(files).forEach(file => {
+        dom.mediaPreviewContainer.style.display = 'grid'; // Garante que o grid esteja visível
+        Array.from(files).forEach(file => {
             if (file.type.startsWith('image/')) {
                 hasValidFiles = true; const reader = new FileReader(); reader.onload = function(event) {
-                    const previewItem = document.createElement('div'); previewItem.className = 'media-preview-item'; const img = document.createElement('img'); img.src = event.target.result; img.alt = `Preview ${file.name}`; previewItem.appendChild(img); dom.mediaPreviewContainer.appendChild(previewItem);
+                    const previewItem = document.createElement('div'); 
+                    previewItem.className = 'media-preview-item'; // SEM a classe 'existing'
+                    const img = document.createElement('img'); img.src = event.target.result; img.alt = `Preview ${file.name}`; previewItem.appendChild(img); dom.mediaPreviewContainer.appendChild(previewItem);
                 }; reader.readAsDataURL(file);
             } else { console.warn(`Arquivo ignorado: ${file.name}`); } });
-        if (!hasValidFiles) { updateMediaUploadStatus("Nenhuma imagem válida.", "error"); dom.mediaPreviewContainer.style.display = 'none'; }
-    } else { dom.mediaPreviewContainer.style.display = 'none'; } dom.btnConfirmMediaUpload.disabled = !hasValidFiles;
+        if (!hasValidFiles) { updateMediaUploadStatus("Nenhuma imagem válida.", "error"); }
+    } else {
+        // Se não houver novos arquivos, e também não houver arquivos existentes, esconde o grid
+        if (dom.mediaPreviewContainer.querySelectorAll('.media-preview-item.existing').length === 0) {
+            dom.mediaPreviewContainer.style.display = 'none';
+        }
+    } 
+    
+    // Habilita o botão de upload SOMENTE se houver NOVOS arquivos válidos
+    dom.btnConfirmMediaUpload.disabled = !hasValidFiles;
 }
+
 async function handleMediaUploadSubmit(e) {
     e.preventDefault(); const files = Array.from(dom.mediaFileInput.files).filter(f => f.type.startsWith('image/')); const raceId = dom.mediaRaceIdInput.value;
     if (files.length === 0 || !raceId) { updateMediaUploadStatus("Selecione imagens.", "error"); return; }
@@ -1021,6 +1083,49 @@ function saveMediaUrlToFirebase(raceId, url) {
         mediaRef.set(mediaData).then(() => { console.log("Mídia salva:", url); resolve(); }).catch(err => { console.error("Erro Firebase:", err); updateMediaUploadStatus(`Erro salvar mídia: ${err.message}`, "error"); reject(err); }); });
 }
 function updateMediaUploadStatus(message, type) { dom.mediaUploadStatus.textContent = message; dom.mediaUploadStatus.className = 'upload-status'; if (type) { dom.mediaUploadStatus.classList.add(type); } }
+
+// --- INÍCIO TAREFA 2: Nova Função ---
+function deleteMediaItem(raceId, mediaId, mediaUrl, element) {
+    // Verifica permissão
+    if (!authUser || authUser.uid !== currentViewingUid) {
+        alert("Erro: Você não tem permissão para excluir esta mídia.");
+        return;
+    }
+    
+    if (!confirm("Tem certeza que deseja excluir esta foto?\n\nEsta ação não pode ser desfeita.")) {
+        return;
+    }
+
+    // Define o caminho para o nó da mídia no Firebase
+    const mediaRef = firebase.database().ref(`/users/${currentViewingUid}/races/${raceId}/media/${mediaId}`);
+    
+    // Remove a referência do Firebase
+    mediaRef.remove()
+        .then(() => {
+            console.log("Mídia removida do Firebase:", mediaId);
+            // Remove o elemento da UI
+            if (element) {
+                element.remove();
+            }
+            // Atualiza status no modal
+            updateMediaUploadStatus("Mídia excluída.", "success");
+            // Se foi a última foto, esconde o container
+            if (dom.mediaPreviewContainer.querySelectorAll('.media-preview-item').length === 0) {
+                 dom.mediaPreviewContainer.style.display = 'none';
+            }
+        })
+        .catch(err => {
+            console.error("Erro ao excluir mídia do Firebase:", err);
+            alert("Erro ao excluir mídia: " + err.message);
+            updateMediaUploadStatus(`Erro ao excluir: ${err.message}`, "error");
+        });
+    
+    // NOTA: A exclusão do arquivo físico do Cloudinary não é implementada
+    // por razões de segurança (exigiria API secret no frontend).
+    // A remoção da referência do Firebase é suficiente para o app.
+}
+// --- FIM TAREFA 2 ---
+
 
 // ======================================================
 // SEÇÃO V5: LÓGICA DE EDIÇÃO DE PERFIL
