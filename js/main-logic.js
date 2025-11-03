@@ -1,6 +1,7 @@
 // =================================================================
 // ARQUIVO DE LÓGICA PRINCIPAL (V9.2 - Estrutura BD Separada + Layout + Add Corrida Pública + Correções)
 // ATUALIZADO (V9.3) COM TAREFAS 2 (Excluir Mídia) e 3 (Ver Classificação)
+// CORREÇÃO (V9.4) DO ERRO 'sort' of undefined em openMediaUploadModal
 // =================================================================
 
 // --- Variáveis Globais do App ---
@@ -995,9 +996,9 @@ function openMediaUploadModal(raceId) {
     dom.mediaUploadStatus.className = 'upload-status'; dom.btnConfirmMediaUpload.disabled = true; // Desabilita upload até selecionar NOVOS arquivos
 
     // --- INÍCIO TAREFA 2: Carregar mídias existentes ---
-    const mediaItems = (race.media && Object.entries(race.media))
-                        .sort(([,a], [,b]) => a.uploadedAt - b.uploadedAt) || [];
-
+    // --- CORREÇÃO V9.4: Adiciona verificação antes de Object.entries e .sort ---
+    const mediaItems = (race.media ? Object.entries(race.media).sort(([,a], [,b]) => a.uploadedAt - b.uploadedAt) : []);
+    
     if (mediaItems.length > 0) {
         dom.mediaPreviewContainer.style.display = 'grid'; // Mostra o grid
         mediaItems.forEach(([mediaId, item]) => {
