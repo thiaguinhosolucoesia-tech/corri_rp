@@ -122,6 +122,9 @@ function initializeAdminPanel(adminUid, db) {
                     rejectUser(data.uid, data.email);
                 });
             });
+        }, (error) => { // Adiciona um tratador de erro para a query
+            console.error("Erro ao carregar lista de pendentes (Admin):", error);
+            adminDom.pendingList.innerHTML = '<div class="loader" style="color:red; padding: 10px;">Erro ao carregar lista. Verifique as regras e o .indexOn.</div>';
         });
     }
 
