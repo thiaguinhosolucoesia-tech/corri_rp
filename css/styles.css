@@ -1350,15 +1350,16 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 /* ================================================= */
 @media (max-width: 900px) {
     .admin-grid { grid-template-columns: 1fr; }
+}
 @media (max-width: 768px) {
-    /* body { padding: 0; } */ /* Removido, já está em html, body */
-    .container { 
-        margin: 0; 
-        border-radius: 0; 
-        border: none; 
-        /* min-height: 100vh; <-- ESTA LINHA FOI REMOVIDA */
-        width: 100%; /* Garante que o container use 100% da largura */
-    }
+    /* body { padding: 0; } */ /* Removido, já está em html, body */
+    .container { 
+        margin: 0; 
+        border-radius: 0; 
+        border: none; 
+        min-height: 100vh; /* Garante que no mobile o container sempre ocupe a tela toda */
+        width: 100%; /* Garante que o container use 100% da largura */
+    }
     .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
     #login-form { max-width: 100%; }
     #btn-back-to-public, #btn-back-to-my-dashboard { top: 10px; left: 10px; padding: 6px 8px; font-size: 0.8em; }
