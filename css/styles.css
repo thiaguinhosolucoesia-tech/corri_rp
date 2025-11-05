@@ -2,7 +2,7 @@
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
 /* V12 - CORREÇÃO FINAL flex-shrink (CAMPO PRETO)    */
 /* V13 - ATUALIZADO COM TAREFA 2 (Excluir Mídia)     */
-/* V17 - CORREÇÃO SÊNIOR (Bug Tremer/Quadro Preto)   */
+/* V18 - CORREÇÃO SÊNIOR (Bug Tremer/Quadro Preto)   */
 /* ================================================= */
 * {
     margin: 0;
@@ -1358,7 +1358,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
         margin: 0; 
         border-radius: 0; 
         border: none; 
-        /* min-height: 100vh; <-- CORREÇÃO V14/V15: Esta linha foi removida */
+        /* min-height: 100vh; <-- CORREÇÃO V18: Esta linha foi removida */
         width: 100%; /* Garante que o container use 100% da largura */
     }
     .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
@@ -1396,13 +1396,15 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 }
 /* ================================================= */
 /* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
-/* V17 - CORREÇÃO SÊNIOR (Bug Tremer)                */
-/* Focando a transição em 'opacity' e 'visibility'.  */
+/* V18 - CORREÇÃO SÊNIOR (Bug Tremer/Quadro Preto)   */
+/* Revertendo para 'max-height' E REMOVENDO 'padding'*/
+/* E REMOVENDO a regra do filho (overflow: hidden)   */
 /* ================================================= */
 .section-header-collapsible {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    /* margin-bottom: 20px; */ /* REMOVIDO V9.7 - A margem/padding está no collapsible agora */
     cursor: pointer; /* Indica que o cabeçalho é clicável */
     padding: 10px 30px 0 30px; /* Ajustado para alinhar com o padding do conteúdo */
 }
@@ -1429,31 +1431,30 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* --- CORREÇÃO V17: Foco em opacity/visibility --- */
+/* --- CORREÇÃO V18: Revertendo para max-height (V15) --- */
 .collapsible-content {
-    /* A altura é controlada por max-height, mas NÃO é animada */
-    max-height: 10000px; 
+    max-height: 10000px; /* Valor alto para acomodar qualquer conteúdo */
     overflow: hidden;
-    /* Transição SOMENTE para opacidade e visibilidade */
-    transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+    /* Transição SOMENTE para max-height E opacidade (V15) */
+    transition: max-height 0.5s ease-out, opacity 0.3s ease-out;
     opacity: 1;
-    visibility: visible;
-    
+    /* Padding e background movidos para cá (de .history-section) */
     padding: 30px;
     background: transparent;
 }
 .collapsible-content.collapsed {
-    /* O colapso é INSTANTÂNEO para evitar o Relayout */
     max-height: 0;
     opacity: 0;
-    visibility: hidden;
-    
     /* O padding é alterado instantaneamente (sem transição) */
     padding-top: 0;
     padding-bottom: 0;
 }
-/* A regra 'display: grid' e '> * { overflow: hidden }' foram removidas */
-
+/* --- CORREÇÃO V18: Removendo a regra do filho (V13) que causava o conflito --- */
+/* A REGRA ABAIXO FOI REMOVIDA:
+.collapsible-content > * {
+    overflow: hidden;
+}
+*/
 
 /* Rotação do ícone do botão (Invertida para V9.5) */
 /* O ícone "para baixo" (colapsado) é o estado padrão */
