@@ -68,12 +68,8 @@ function initializeAdminPanel(adminUid, db) {
     // ======================================================
 
     function loadPendingList() {
-        // ####################################################################
-        // ALTERAÇÃO CRÍTICA AQUI (LINHA 115)
-        // Precisamos usar uma query para satisfazer as novas Regras de Segurança
-        const pendingRef = db.ref('/pendingApprovals').orderByChild('requestDate');
-        // ####################################################################
-        
+        // REVERTIDO PARA O CÓDIGO ORIGINAL QUE FUNCIONA
+        const pendingRef = db.ref('/pendingApprovals');
         pendingRef.on('value', (snapshot) => {
             const requests = snapshot.val();
             if (!requests) {
@@ -82,11 +78,7 @@ function initializeAdminPanel(adminUid, db) {
             }
             
             adminDom.pendingList.innerHTML = '';
-            // Como o snapshot é uma query ordenada, precisamos iterar na ordem correta
-            snapshot.forEach((childSnapshot) => {
-                const uid = childSnapshot.key;
-                const request = childSnapshot.val();
-                
+            Object.entries(requests).forEach(([uid, request]) => {
                 const item = document.createElement('div');
                 item.className = 'pending-item';
                 item.innerHTML = `
@@ -105,8 +97,7 @@ function initializeAdminPanel(adminUid, db) {
                         <button class="btn-reject" data-uid="${uid}" data-email="${request.email}">Recusar</button>
                     </div>
                 `;
-                // Adiciona no início (prepend) para mostrar os mais novos primeiro
-                adminDom.pendingList.prepend(item);
+                adminDom.pendingList.appendChild(item);
             });
             
             adminDom.pendingList.querySelectorAll('.btn-approve').forEach(button => {
@@ -122,9 +113,6 @@ function initializeAdminPanel(adminUid, db) {
                     rejectUser(data.uid, data.email);
                 });
             });
-        }, (error) => { // Adiciona um tratador de erro para a query
-            console.error("Erro ao carregar lista de pendentes (Admin):", error);
-            adminDom.pendingList.innerHTML = '<div class="loader" style="color:red; padding: 10px;">Erro ao carregar lista. Verifique as regras e o .indexOn.</div>';
         });
     }
 
