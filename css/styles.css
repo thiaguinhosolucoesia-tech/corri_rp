@@ -2,6 +2,7 @@
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
 /* V12 - CORREÇÃO FINAL flex-shrink (CAMPO PRETO)    */
 /* V13 - ATUALIZADO COM TAREFA 2 (Excluir Mídia)     */
+/* V14 - CORREÇÃO SÊNIOR (Bug Tremer/Quadro Preto)   */
 /* ================================================= */
 * {
     margin: 0;
@@ -1357,7 +1358,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
         margin: 0; 
         border-radius: 0; 
         border: none; 
-        min-height: 100vh; /* Garante que no mobile o container sempre ocupe a tela toda */
+        /* min-height: 100vh; <-- CORREÇÃO V14: Esta linha foi removida para corrigir o bug do "quadro preto" E o bug do "tremer" */
         width: 100%; /* Garante que o container use 100% da largura */
     }
     .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
@@ -1395,7 +1396,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 }
 /* ================================================= */
 /* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
-/* V9.7 - CORREÇÃO FINAL ANIMAÇÃO PADDING             */
+/* V14 - CORREÇÃO SÊNIOR (Bug Tremer/Quadro Preto)   */
+/* Revertendo para a animação estável de 'max-height'*/
 /* ================================================= */
 .section-header-collapsible {
     display: flex;
@@ -1427,30 +1429,27 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .btn-toggle-section:hover {
     background: rgba(255, 255, 255, 0.2);
 }
-/* --- CORREÇÃO V9.7: Animação com Grid + Padding --- */
+
+/* --- CORREÇÃO V14: Revertendo para max-height --- */
 .collapsible-content {
-    display: grid;
-    /* Inicia com 1fr (uma fração, ou seja, altura total do conteúdo) */
-    grid-template-rows: 1fr; 
-    /* Transição para a altura do grid E o padding */
-    transition: grid-template-rows 0.4s ease-out, padding 0.4s ease-out, opacity 0.3s ease-out;
+    max-height: 10000px; /* Valor alto para acomodar qualquer conteúdo */
+    overflow: hidden;
+    /* Transição para max-height E o padding */
+    transition: max-height 0.5s ease-out, opacity 0.3s ease-out, padding 0.5s ease-out;
     opacity: 1;
     /* Padding e background movidos para cá (de .history-section) */
     padding: 30px;
     background: transparent;
 }
 .collapsible-content.collapsed {
-    /* Anima para 0fr (altura zero) */
-    grid-template-rows: 0fr; 
+    max-height: 0;
     opacity: 0;
     /* Remove o padding quando recolhido */
     padding-top: 0;
     padding-bottom: 0;
 }
-/* Esta regra é essencial para a animação do grid funcionar */
-.collapsible-content > * {
-    overflow: hidden;
-}
+/* A regra 'display: grid' e '> * { overflow: hidden }' foram removidas */
+
 /* Rotação do ícone do botão (Invertida para V9.5) */
 /* O ícone "para baixo" (colapsado) é o estado padrão */
 .btn-toggle-section i.bx-chevron-down {
