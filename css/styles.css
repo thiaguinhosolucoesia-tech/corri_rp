@@ -2,7 +2,7 @@
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
 /* V12 - CORREÇÃO FINAL flex-shrink (CAMPO PRETO)    */
 /* V13 - ATUALIZADO COM TAREFA 2 (Excluir Mídia)     */
-/* V15 - CORREÇÃO SÊNIOR DEFINITIVA (Bug Tremer)     */
+/* V17 - CORREÇÃO SÊNIOR (Bug Tremer/Quadro Preto)   */
 /* ================================================= */
 * {
     margin: 0;
@@ -1396,14 +1396,13 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 }
 /* ================================================= */
 /* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
-/* V15 - CORREÇÃO SÊNIOR DEFINITIVA (Bug Tremer)     */
-/* Revertendo para 'max-height' E REMOVENDO 'padding'*/
+/* V17 - CORREÇÃO SÊNIOR (Bug Tremer)                */
+/* Focando a transição em 'opacity' e 'visibility'.  */
 /* ================================================= */
 .section-header-collapsible {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* margin-bottom: 20px; */ /* REMOVIDO V9.7 - A margem/padding está no collapsible agora */
     cursor: pointer; /* Indica que o cabeçalho é clicável */
     padding: 10px 30px 0 30px; /* Ajustado para alinhar com o padding do conteúdo */
 }
@@ -1430,25 +1429,31 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* --- CORREÇÃO V15: Removido 'padding' da transição --- */
+/* --- CORREÇÃO V17: Foco em opacity/visibility --- */
 .collapsible-content {
-    max-height: 10000px; /* Valor alto para acomodar qualquer conteúdo */
+    /* A altura é controlada por max-height, mas NÃO é animada */
+    max-height: 10000px; 
     overflow: hidden;
-    /* Transição SOMENTE para max-height E opacidade */
-    transition: max-height 0.5s ease-out, opacity 0.3s ease-out;
+    /* Transição SOMENTE para opacidade e visibilidade */
+    transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
     opacity: 1;
-    /* Padding e background movidos para cá (de .history-section) */
+    visibility: visible;
+    
     padding: 30px;
     background: transparent;
 }
 .collapsible-content.collapsed {
+    /* O colapso é INSTANTÂNEO para evitar o Relayout */
     max-height: 0;
     opacity: 0;
+    visibility: hidden;
+    
     /* O padding é alterado instantaneamente (sem transição) */
     padding-top: 0;
     padding-bottom: 0;
 }
 /* A regra 'display: grid' e '> * { overflow: hidden }' foram removidas */
+
 
 /* Rotação do ícone do botão (Invertida para V9.5) */
 /* O ícone "para baixo" (colapsado) é o estado padrão */
