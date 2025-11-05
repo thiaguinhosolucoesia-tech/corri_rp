@@ -2,7 +2,7 @@
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
 /* V12 - CORREÇÃO FINAL flex-shrink (CAMPO PRETO)    */
 /* V13 - ATUALIZADO COM TAREFA 2 (Excluir Mídia)     */
-/* V14 - CORREÇÃO SÊNIOR (Bug Tremer/Quadro Preto)   */
+/* V15 - CORREÇÃO SÊNIOR DEFINITIVA (Bug Tremer)     */
 /* ================================================= */
 * {
     margin: 0;
@@ -1358,7 +1358,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
         margin: 0; 
         border-radius: 0; 
         border: none; 
-        /* min-height: 100vh; <-- CORREÇÃO V14: Esta linha foi removida para corrigir o bug do "quadro preto" E o bug do "tremer" */
+        /* min-height: 100vh; <-- CORREÇÃO V14/V15: Esta linha foi removida */
         width: 100%; /* Garante que o container use 100% da largura */
     }
     .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
@@ -1396,8 +1396,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 }
 /* ================================================= */
 /* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
-/* V14 - CORREÇÃO SÊNIOR (Bug Tremer/Quadro Preto)   */
-/* Revertendo para a animação estável de 'max-height'*/
+/* V15 - CORREÇÃO SÊNIOR DEFINITIVA (Bug Tremer)     */
+/* Revertendo para 'max-height' E REMOVENDO 'padding'*/
 /* ================================================= */
 .section-header-collapsible {
     display: flex;
@@ -1430,12 +1430,12 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* --- CORREÇÃO V14: Revertendo para max-height --- */
+/* --- CORREÇÃO V15: Removido 'padding' da transição --- */
 .collapsible-content {
     max-height: 10000px; /* Valor alto para acomodar qualquer conteúdo */
     overflow: hidden;
-    /* Transição para max-height E o padding */
-    transition: max-height 0.5s ease-out, opacity 0.3s ease-out, padding 0.5s ease-out;
+    /* Transição SOMENTE para max-height E opacidade */
+    transition: max-height 0.5s ease-out, opacity 0.3s ease-out;
     opacity: 1;
     /* Padding e background movidos para cá (de .history-section) */
     padding: 30px;
@@ -1444,7 +1444,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .collapsible-content.collapsed {
     max-height: 0;
     opacity: 0;
-    /* Remove o padding quando recolhido */
+    /* O padding é alterado instantaneamente (sem transição) */
     padding-top: 0;
     padding-bottom: 0;
 }
