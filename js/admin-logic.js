@@ -68,7 +68,12 @@ function initializeAdminPanel(adminUid, db) {
     // ======================================================
 
     function loadPendingList() {
-        const pendingRef = db.ref('/pendingApprovals');
+        // ####################################################################
+        // ALTERAÇÃO CRÍTICA AQUI (LINHA 115)
+        // Precisamos usar uma query para satisfazer as novas Regras de Segurança
+        const pendingRef = db.ref('/pendingApprovals').orderByChild('requestDate');
+        // ####################################################################
+        
         pendingRef.on('value', (snapshot) => {
             const requests = snapshot.val();
             if (!requests) {
@@ -77,7 +82,11 @@ function initializeAdminPanel(adminUid, db) {
             }
             
             adminDom.pendingList.innerHTML = '';
-            Object.entries(requests).forEach(([uid, request]) => {
+            // Como o snapshot é uma query ordenada, precisamos iterar na ordem correta
+            snapshot.forEach((childSnapshot) => {
+                const uid = childSnapshot.key;
+                const request = childSnapshot.val();
+                
                 const item = document.createElement('div');
                 item.className = 'pending-item';
                 item.innerHTML = `
@@ -96,7 +105,8 @@ function initializeAdminPanel(adminUid, db) {
                         <button class="btn-reject" data-uid="${uid}" data-email="${request.email}">Recusar</button>
                     </div>
                 `;
-                adminDom.pendingList.appendChild(item);
+                // Adiciona no início (prepend) para mostrar os mais novos primeiro
+                adminDom.pendingList.prepend(item);
             });
             
             adminDom.pendingList.querySelectorAll('.btn-approve').forEach(button => {
