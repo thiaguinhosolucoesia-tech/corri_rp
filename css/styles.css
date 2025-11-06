@@ -2,6 +2,8 @@
 /* ESTILIZAÇÃO GERAL (V1 + V2 + V5 + V6 + V7/8)      */
 /* V12 - CORREÇÃO FINAL flex-shrink (CAMPO PRETO)    */
 /* V13 - ATUALIZADO COM TAREFA 2 (Excluir Mídia)     */
+/* V19 - CORREÇÃO SÊNIOR (Bug Tremer/Quadro Preto)   */
+/* V22 - REMOVIDO 'overflow:hidden' (Quadro Preto)   */
 /* ================================================= */
 * {
     margin: 0;
@@ -35,7 +37,7 @@ html, body {
     /* --- Correção Layout Flex --- */
     display: flex;
     flex-direction: column;
-    /* min-height: calc(100vh - 40px); */ /* REMOVIDO - CAUSA O CAMPO PRETO */
+    /* min-height: calc(100vh - 40px); */ /* REMOVIDO (V19) - CAUSA O CAMPO PRETO / TREMELIQUE */
 }
 /* ================================================= */
 /* CABEÇALHO (HEADER - V5)                           */
@@ -269,7 +271,7 @@ html, body {
     padding: 40px 30px;
     background: #1a1a2e;
     text-align: center;
-    /* flex-grow: 1; */ /* REMOVIDO - CAUSA O CAMPO PRETO */
+    /* flex-grow: 1; */ /* REMOVIDO (V19) - CAUSA O CAMPO PRETO / TREMELIQUE */
 }
 #pending-approval-view, #rejected-view {
      padding: 60px 30px;
@@ -789,7 +791,7 @@ html, body {
     text-align: center;
     background: #1f2027;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    /* flex-grow: 1; */ /* REMOVIDO V11 - Causa do "Campo Preto" */
+    /* flex-grow: 1; */ /* REMOVIDO (V19) - Causa do "Campo Preto" / Tremelique */
 }
 #public-view h2 {
     color: #c5cae9;
@@ -869,7 +871,7 @@ html, body {
 /* *** CORREÇÃO V11: REMOVIDO 'flex-grow: 1' DAQUI *** */
 #user-content {
     /* Esta view só é mostrada quando logada */
-    /* flex-grow: 1; */ /* REMOVIDO V11 */
+    /* flex-grow: 1; */ /* REMOVIDO (V19) - Causa o "Campo Preto" / Tremelique */
 }
 .dashboard-section {
     padding: 30px;
@@ -964,8 +966,8 @@ html, body {
     /* padding: 30px; */ /* <-- REMOVIDO V9.7 */
     /* background: transparent; */ /* <-- REMOVIDO V9.7 */
     /* flex-shrink: 0; */ /* REMOVIDO V11 */
-    /* --- CORREÇÃO V15: Adicionado overflow:hidden --- */
-    overflow: hidden; /* Essencial para a animação do grid funcionar */
+    /* --- CORREÇÃO V22: REMOVIDO overflow:hidden (obsoleto, causava bug layout) --- */
+    /* overflow: hidden; */
     /* --- CORREÇÃO V15: Removido height/min-height --- */
     /* height: auto; */ /* Se estiver definido, remova */
     /* min-height: 0; */ /* Se estiver definido, remova */
@@ -1357,7 +1359,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
         margin: 0; 
         border-radius: 0; 
         border: none; 
-        min-height: 100vh; /* Garante que no mobile o container sempre ocupe a tela toda */
+        /* min-height: 100vh; <-- CORREÇÃO V19: Esta linha foi removida (CAUSA DO TREMELIQUE) */
         width: 100%; /* Garante que o container use 100% da largura */
     }
     .auth-controls { position: static; justify-content: center; padding-bottom: 15px; flex-wrap: wrap; }
@@ -1395,7 +1397,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 }
 /* ================================================= */
 /* ESTILOS PARA SEÇÃO RECOLHÍVEL (Layout V9.1)       */
-/* V9.7 - CORREÇÃO FINAL ANIMAÇÃO PADDING             */
+/* V22 - REMOVIDO 'overflow:hidden' (Quadro Preto)   */
 /* ================================================= */
 .section-header-collapsible {
     display: flex;
@@ -1427,30 +1429,27 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); }
 .btn-toggle-section:hover {
     background: rgba(255, 255, 255, 0.2);
 }
-/* --- CORREÇÃO V9.7: Animação com Grid + Padding --- */
+
+/* --- CORREÇÃO V22: Removendo animação e overflow --- */
 .collapsible-content {
-    display: grid;
-    /* Inicia com 1fr (uma fração, ou seja, altura total do conteúdo) */
-    grid-template-rows: 1fr; 
-    /* Transição para a altura do grid E o padding */
-    transition: grid-template-rows 0.4s ease-out, padding 0.4s ease-out, opacity 0.3s ease-out;
+    /* Sem transição, sem grid-template-rows */
+    display: block; /* Apenas exibe */
     opacity: 1;
-    /* Padding e background movidos para cá (de .history-section) */
     padding: 30px;
     background: transparent;
+    /* --- CORREÇÃO V22: REMOVIDO overflow:hidden (obsoleto, causava bug layout) --- */
+    /* overflow: hidden; */
 }
 .collapsible-content.collapsed {
-    /* Anima para 0fr (altura zero) */
-    grid-template-rows: 0fr; 
+    /* Sem transição, apenas oculta */
+    display: none; 
     opacity: 0;
     /* Remove o padding quando recolhido */
     padding-top: 0;
     padding-bottom: 0;
 }
-/* Esta regra é essencial para a animação do grid funcionar */
-.collapsible-content > * {
-    overflow: hidden;
-}
+
+
 /* Rotação do ícone do botão (Invertida para V9.5) */
 /* O ícone "para baixo" (colapsado) é o estado padrão */
 .btn-toggle-section i.bx-chevron-down {
