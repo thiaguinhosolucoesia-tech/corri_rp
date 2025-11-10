@@ -855,8 +855,8 @@ function renderCalendar(corridas, container, buttonType) {
     container.innerHTML = sortedCorridas.map(corrida => {
         const dataObj = new Date(`${corrida.data}T12:00:00Z`); const dia = String(dataObj.getUTCDate()).padStart(2, '0'); const mes = dataObj.toLocaleString("pt-BR", { month: "short", timeZone: 'UTC' }).replace(".", "").toUpperCase();
         let actionButtonHTML = '';
-        if (buttonType === 'inscrições') { actionButtonHTML = corrida.linkInscricao ? `<a href="${corrida.linkInscricao}" target="_blank" rel="noopener noreferrer" class="v2-inscricoes-button"><i class='bx bx-link-external' style="margin-right: 5px;"></i>Inscrições</a>` : `<div class="v2-race-button-disabled">Em Breve</div>`; }
-        else { actionButtonHTML = appState.resultadosEtapas[corrida.id] ? `<button class="v2-results-button" data-race-id="${corrida.id}"><i class='bx bx-table' style="margin-right: 5px;"></i>Ver Resultados</button>` : `<div class="v2-race-button-disabled">Resultados em Breve</div>`; }
+        if (buttonType === 'inscrições') { actionButtonHTML = corrida.linkInscricao ? `<a href="${corrida.linkInscricao}" target="_blank" rel="noopener noreferrer" class="v2-inscricoes-button"><i class='bx bx-link-external' style="margin-right: 5px;"></i>Inscrições</a>` : `<div class="v2-race-button-disabled">Encerradas ou Em Breve</div>`; }
+        else { actionButtonHTML = appState.resultadosEtapas[corrida.id] ? `<button class="v2-results-button" data-race-id="${corrida.id}"><i class='bx bx-table' style="margin-right: 5px;"></i>Ver Resultados</button>` : `<div class="v2-race-button-disabled">Resultados em Breve ou Indisponíveis</div>`; }
 
         // Botão Adicionar (V9.1) - Apenas se logado
         const addRaceButtonHTML = authUser ? `<button class="v2-add-personal-button" data-race-info='${JSON.stringify({nome: corrida.nome, data: corrida.data, id: corrida.id})}'>➕ Adicionar</button>` : '';
